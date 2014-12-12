@@ -1,7 +1,9 @@
-package main 
+package main
 
-import ("math/rand"
-        "time")  
+import (
+	"math/rand"
+	"time"
+)
 
 type Dice struct {
 	n_sides int
@@ -9,5 +11,5 @@ type Dice struct {
 
 func (d *Dice) Roll() int {
 	rand.Seed(time.Now().UTC().UnixNano())
-        return rand.Int() % d.n_sides + 1
+	return rand.Int()%d.n_sides + 1
 }
