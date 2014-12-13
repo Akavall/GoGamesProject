@@ -1,12 +1,14 @@
 package main
 
-import ("fmt"
+import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
-	"strings")
+	"strings"
+)
 
-func main(){
+func main() {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Ready for dice war?")
 
@@ -18,8 +20,7 @@ func main(){
 	fmt.Println("How sides should your dice have?")
 	raw_string, _ = reader.ReadString('\n')
 	clean_string = strings.Replace(raw_string, "\n", "", -1)
-        n_your_dice_sides, _ := strconv.Atoi(clean_string)
-
+	n_your_dice_sides, _ := strconv.Atoi(clean_string)
 
 	fmt.Println("How many dice should I have?")
 	raw_string, _ = reader.ReadString('\n')
@@ -37,13 +38,12 @@ func main(){
 	fmt.Println("Your sum is : ", your_roll_sum)
 	fmt.Println("My sum is : ", my_roll_sum)
 
-	if (your_roll_sum > my_roll_sum){
+	if your_roll_sum > my_roll_sum {
 		fmt.Println("You win! Well done")
-	}else if(your_roll_sum < my_roll_sum){
+	} else if your_roll_sum < my_roll_sum {
 		fmt.Println("I win!, HaHa!")
-	}else{
+	} else {
 		fmt.Println("We are evenly matched, good game!")
 	}
 
-	
 }
