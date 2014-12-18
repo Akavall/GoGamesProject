@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func main() {
+func dice_war() {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Ready for dice war?")
 
