@@ -3,7 +3,7 @@ package main
 
 func CalcRollPermutations(score int, n_dice int, n_sides int) int {
 	pc := PermCalculator{count: 0}
-	return pc.calc_combs(n_dice, 0, n_sides, 0, score)	
+	return pc.calc_perms(n_dice, 0, n_sides, 0, score)	
 }
 
 type PermCalculator struct {
