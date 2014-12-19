@@ -1,7 +1,7 @@
 package main
 
 
-func CalcRollProbabilities(score int, n_dice int, n_sides int) int {
+func CalcRollPermutations(score int, n_dice int, n_sides int) int {
 	cc := CombCalculator{count: 0}
 	return cc.calc_combs(n_dice, 0, n_sides, 0, score)	
 }

@@ -3,7 +3,7 @@ package main
 import ( "testing"
 )
 
-func TestCalcRollProbabilities_TwoDice_SixSides(t *testing.T) {
+func TestCalcRollPermutations_TwoDice_SixSides(t *testing.T) {
 
 	const N_DICE, N_SIDES = 2, 6
 
@@ -16,7 +16,7 @@ func TestCalcRollProbabilities_TwoDice_SixSides(t *testing.T) {
 	}
 
 	for i := N_SIDES; i <= N_DICE * N_SIDES; i++ {
-		result := CalcRollProbabilities(i, N_DICE, N_SIDES)
+		result := CalcRollPermutations(i, N_DICE, N_SIDES)
 		expected := expected_score_to_n_pos[i]
 		if result != expected {
 			t.Errorf("For score %d with %d dice and %d sides expected %d but got %d", i, N_DICE, N_SIDES, expected, result)
@@ -24,7 +24,7 @@ func TestCalcRollProbabilities_TwoDice_SixSides(t *testing.T) {
 	}
 }
 
-func TestCalcRollProbabilities_ThreeDice_SevenSides(t *testing.T) {
+func TestCalcRollPermutations_ThreeDice_SevenSides(t *testing.T) {
 
 	const N_DICE, N_SIDES = 3, 7
 
@@ -39,7 +39,7 @@ func TestCalcRollProbabilities_ThreeDice_SevenSides(t *testing.T) {
 	}
 
 	for i := N_SIDES; i <= N_DICE * N_SIDES; i++ {
-		result := CalcRollProbabilities(i, N_DICE, N_SIDES)
+		result := CalcRollPermutations(i, N_DICE, N_SIDES)
 		expected := expected_score_to_n_pos[i]
 		if result != expected {
 			t.Errorf("For score %d with %d dice and %d sides expected %d but got %d", i, N_DICE, N_SIDES, expected, result)
@@ -47,7 +47,7 @@ func TestCalcRollProbabilities_ThreeDice_SevenSides(t *testing.T) {
 	}
 }
 
-func TestCalcRollProbabilities_FiveDice_TenSides(t *testing.T) {
+func TestCalcRollPermutations_FiveDice_TenSides(t *testing.T) {
 
 	const N_DICE, N_SIDES = 5, 10
 
@@ -66,7 +66,7 @@ func TestCalcRollProbabilities_FiveDice_TenSides(t *testing.T) {
 	}
 
 	for i := N_SIDES; i <= N_DICE * N_SIDES; i++ {
-		result := CalcRollProbabilities(i, N_DICE, N_SIDES)
+		result := CalcRollPermutations(i, N_DICE, N_SIDES)
 		expected := expected_score_to_n_pos[i]
 		if result != expected {
 			t.Errorf("For score %d with %d dice and %d sides expected %d but got %d", i, N_DICE, N_SIDES, expected, result)
