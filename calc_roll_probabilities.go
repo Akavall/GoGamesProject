@@ -3,14 +3,14 @@ package main
 
 func CalcRollPermutations(score int, n_dice int, n_sides int) int {
 	pc := PermCalculator{count: 0}
-	return pc.calc_perms(n_dice, 0, n_sides, 0, score)	
+	return pc.calc_perms(n_dice, 0, n_sides, score)	
 }
 
 type PermCalculator struct {
 	count int
 }
 
-func (pc *PermCalculator) calc_perms(n_dice int, score int, n_sides int, roll int, target int) int {
+func (pc *PermCalculator) calc_perms(n_dice int, score int, n_sides int, target int) int {
 	if (n_dice == 1){
 		if ( target-score >= 1 && target-score <= n_sides){
 			pc.count++
@@ -20,7 +20,7 @@ func (pc *PermCalculator) calc_perms(n_dice int, score int, n_sides int, roll in
 		}
 	}
 	for i := 1; i <= n_sides; i++ {
-		pc.calc_perms(n_dice - 1, score + i, n_sides, i, target)
+		pc.calc_perms(n_dice - 1, score + i, n_sides, target)
 	}
 	return pc.count
 }
