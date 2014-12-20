@@ -2,6 +2,7 @@ package main
 
 import (
 	"testing"
+	"math"
 )
 
 func TestCalcRollPermutations_TwoDice_SixSides(t *testing.T) {
@@ -74,3 +75,38 @@ func TestCalcRollPermutations_FiveDice_TenSides(t *testing.T) {
 		}
 	}
 }
+
+func TestCalcRollProbability(t *testing.T) {
+	result := CalcRollProbability(7, 2, 6)
+	expected := 1.0 / 6.0
+
+	if math.Abs(result - expected) > 0.0000000001 {
+		t.Errorf("Expected %d but got %d", expected, result)
+	}
+
+	result = CalcRollProbability(5, 5, 7)
+	expected = 1.0 / math.Pow(7.0, 5.0)
+
+	if math.Abs(result - expected) > 0.0000000001 {
+		t.Errorf("Expected %d but got %d", expected, result)
+	}
+}
+
+func TestCalcRollProbabilities(t *testing.T) {
+	roll_prob, prob_lower, prob_higher := CalcRollProbabilities(7, 2, 6)
+
+	prob_sum := roll_prob + prob_lower + prob_higher
+	
+	if math.Abs(prob_sum - 1.0) > 0.0000000001 {
+		t.Error("Sum of all probs does not equal 1, got %d", prob_sum)
+	}
+
+	roll_prob, prob_lower, prob_higher = CalcRollProbabilities(17, 4, 10)
+
+	prob_sum = roll_prob + prob_lower + prob_higher
+	
+	if math.Abs(prob_sum - 1.0) > 0.0000000001 {
+		t.Error("Sum of all probs does not equal 1, got %d", prob_sum)
+	}
+}
+
