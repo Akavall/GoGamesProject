@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/Akavall/GoGamesProject/dice"
 )
 
 func dice_war() {
@@ -32,8 +34,11 @@ func dice_war() {
 	clean_string = strings.Replace(raw_string, "\n", "", -1)
 	n_my_dice_sides, _ := strconv.Atoi(clean_string)
 
-	your_roll_sum := n_dice_roll(n_your_dice_sides, n_your_dice)
-	my_roll_sum := n_dice_roll(n_my_dice_sides, n_my_dice)
+	your_dice := dice.InitDefaultDice(n_your_dice_sides)
+	my_dice := dice.InitDefaultDice(n_my_dice_sides)
+
+	your_roll_sum := your_dice.RollNTimes(n_your_dice).SumSides()
+	my_roll_sum := my_dice.RollNTimes(n_my_dice).SumSides()
 
 	fmt.Println("Your sum is : ", your_roll_sum)
 	fmt.Println("My sum is : ", my_roll_sum)
