@@ -1,4 +1,4 @@
-package main
+package dice 
 
 import "testing"
 
@@ -20,7 +20,7 @@ func TestInitDefaultDice(t *testing.T) {
 		for i := 0; i < len(dice.Sides); i++ {
 			if dice.Sides[i].numerical_value != i+1 {
 				t.Errorf("Expected dice side with value %d, but got %d",
-					i+1, dice.Sides[i].numerical_value)
+					i+1, dice.Sides[i].Numerical_value)
 			}
 		}
 	}

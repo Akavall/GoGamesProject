@@ -1,4 +1,4 @@
-package main
+package dice 
 
 import (
 	"bufio"
@@ -32,8 +32,8 @@ func dice_war() {
 	clean_string = strings.Replace(raw_string, "\n", "", -1)
 	n_my_dice_sides, _ := strconv.Atoi(clean_string)
 
-	your_roll_sum := n_dice_roll(n_your_dice_sides, n_your_dice)
-	my_roll_sum := n_dice_roll(n_my_dice_sides, n_my_dice)
+	your_roll_sum := N_dice_roll(n_your_dice_sides, n_your_dice)
+	my_roll_sum := N_dice_roll(n_my_dice_sides, n_my_dice)
 
 	fmt.Println("Your sum is : ", your_roll_sum)
 	fmt.Println("My sum is : ", my_roll_sum)

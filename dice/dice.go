@@ -1,4 +1,4 @@
-package main
+package dice 
 
 import (
 	"math/rand"
@@ -8,7 +8,7 @@ import (
 type Side struct {
 	name            string
 	description     string
-	numerical_value int
+	Numerical_value int
 }
 
 type Sides []Side
@@ -28,7 +28,7 @@ func (d *Dice) Roll() Side {
 func InitDefaultDice(n_sides int) Dice {
 	Sides := make([]Side, n_sides)
 	for i := 0; i < n_sides; i++ {
-		Sides[i] = Side{numerical_value: i + 1}
+		Sides[i] = Side{Numerical_value: i + 1}
 	}
 	return Dice{name: "Default dice", Sides: Sides}
 }
