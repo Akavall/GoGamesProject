@@ -1,28 +1,28 @@
-package dice 
+package dice
 
 import (
 	"math/rand"
 	"time"
 )
 
-type Side struct {
-	name            string
-	description     string
-	Numerical_value int
-}
-
-type Sides []Side
-
 type Dice struct {
-	name        string
-	description string
+	Name        string
+	Description string
 	Sides
 }
 
-func (d *Dice) Roll() Side {
+func (d Dice) Roll() Side {
 	rand.Seed(time.Now().UTC().UnixNano())
 	random_roll := rand.Int() % len(d.Sides)
 	return d.Sides[random_roll]
+}
+
+func (d Dice) RollNTimes(n_rolls int) Sides {
+	Sides := make([]Side, n_rolls)
+	for i := 0; i < n_rolls; i++ {
+		Sides[i] = d.Roll()
+	}
+	return Sides
 }
 
 func InitDefaultDice(n_sides int) Dice {
@@ -30,5 +30,5 @@ func InitDefaultDice(n_sides int) Dice {
 	for i := 0; i < n_sides; i++ {
 		Sides[i] = Side{Numerical_value: i + 1}
 	}
-	return Dice{name: "Default dice", Sides: Sides}
+	return Dice{Name: "Default dice", Sides: Sides}
 }

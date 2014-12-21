@@ -35,7 +35,8 @@ func four_dice_roll(response http.ResponseWriter, request *http.Request) {
 		log.Fatal(response, fmt.Sprintf("error parsing url %v", err), 500)
 	}
 
-	score := dice.N_dice_roll(6, 4)
+	score := dice.InitDefaultDice(6).RollNTimes(4).SumSides()
+
 	roll_prob, prob_lower, prob_higher := statistics.CalcRollProbabilities(score, 4, 6)
 
 	log.Printf("Rolled: %d for request...", score)
