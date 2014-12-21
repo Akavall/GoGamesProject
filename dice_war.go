@@ -1,4 +1,4 @@
-package main 
+package main
 
 import (
 	"bufio"
@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-    "github.com/Akavall/GoGamesProject/dice"
+	"github.com/Akavall/GoGamesProject/dice"
 )
 
 func dice_war() {
