@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/a-temlyakov/GoGamesProject/dice"
-	"github.com/a-temlyakov/GoGamesProject/statistics"
+	"github.com/Akavall/GoGamesProject/dice"
+	"github.com/Akavall/GoGamesProject/statistics"
 )
 
 func dice_roll(response http.ResponseWriter, request *http.Request) {
