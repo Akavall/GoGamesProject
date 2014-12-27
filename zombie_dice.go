@@ -89,6 +89,7 @@ func players_turn(deck []dice.Dice) int {
 		}
 		dices_to_roll := pop_last_n(&deck, 3 - len(old_dices))
 		dices_to_roll = append(dices_to_roll, old_dices...)
+		old_dices = nil
 		for _, d := range dices_to_roll {
 			inner_walks := 0
 			side := d.Roll()
@@ -121,7 +122,6 @@ func players_turn(deck []dice.Dice) int {
 		}
 		
 		// emptying the slice
-		old_dices = nil
 	}
 	fmt.Println("The turn has ended")
 	return brains
