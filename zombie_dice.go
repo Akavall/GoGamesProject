@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 	"math/rand"
 	"bufio"
@@ -8,53 +9,76 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Akavall/GoGamesProject/dice"
+        "github.com/Akavall/GoGamesProject/dice"
 )
 
-func initialize_deck () []Dice {
+func initialize_deck () []dice.Dice {
 
-	green_sides := []string{"shot", "walk", "walk", "brain", "brain", "brain"}
-	yellow_sides := []string{"shot", "shot", "walk", "walk", "brain", "brain"}
-	red_sides := []string{"shot", "shot", "shot", "walk", "walk", "brain"}
+	green := []string{"shot", "walk", "walk", "brain", "brain", "brain"}
+	yellow := []string{"shot", "shot", "walk", "walk", "brain", "brain"}
+	red := []string{"shot", "shot", "shot", "walk", "walk", "brain"}
         
+	green_sides := make_slice_of_sides(green)
+	yellow_sides := make_slice_of_sides(yellow)
+        red_sides := make_slice_of_sides(red)
+	
         // Put dices in the deck
 
-        const N_DICES = 13
         const N_GREEN, N_YELLOW, N_RED = 6, 4, 3
 
-	deck := make([]Dice, N_DICES)
+	deck := make([]dice.Dice, 0)
 
 	for i := 0; i < N_GREEN; i++ {
-		deck = append(deck.dices, Dice{Name: "green", Sides: green_sides})
+		deck = append(deck, dice.Dice{Name: "green", Sides: green_sides})
 	}
 
 	for i := 0; i < N_YELLOW; i++ {
-		deck = append(deck.dices, Dice{Name: "yellow", Sides: yellow_sides})
+		deck = append(deck, dice.Dice{Name: "yellow", Sides: yellow_sides})
 	}
 
 	for i := 0; i < N_RED; i++ {
-		deck = append(deck.dices, Dice{Name: "red", Sides: red_sides})
+		deck = append(deck, dice.Dice{Name: "red", Sides: red_sides})
 	}
 
 	// Shuffle the deck
-	rand.Seed(time.Now().UTC().UnixNano())
+	// rand.Seed(time.Now().UTC().UnixNano())
 
-	rand_inds = rand.Perm(N_DICES)
-        shuffled_deck = make([]int, N_DICES)
+	// rand_inds := rand.Perm(N_DICES)
+        // shuffled_deck := make([]int, N_DICES)
   
-        for ind, rand_ind := range rand_inds {
-		suffled_deck[ind] = deck[rand_ind]
-	}
+        // for ind, rand_ind := range rand_inds {
+	// 	shuffled_deck[ind] = deck[rand_ind]
+	// }
 	
+	return deck
+}
+
+func shuffle_deck(deck []dice.Dice) []dice.Dice {
+	rand.Seed(time.Now().UTC().UnixNano())
+	rand_inds := rand.Perm(len(deck))
+	shuffled_deck := make([]dice.Dice, len(deck))
+
+	for ind, rand_ind := range rand_inds {
+		shuffled_deck[ind] = deck[rand_ind]
+	}
 	return shuffled_deck
 }
 
-func players_go(deck []Dice) int {
+func make_slice_of_sides(string_sides []string) []dice.Side {
+	sides := make([]dice.Side, len(string_sides))
+	for ind, s := range string_sides {
+		sides[ind] = dice.Side{Name: s}
+	}
+	return sides
+}
+
+func players_go(deck []dice.Dice) int {
 	// Need to do major refactoring here
 	deck = initialize_deck()
 	brains := 0
         shots := 0
-	old_dices := make([]int, 0)
+	old_dices := make([]dice.Dice, 0)
+        reader := bufio.NewReader(os.Stdin)
 
 	// While loop
 	for i := 0; i < 1; i++ {
@@ -63,14 +87,14 @@ func players_go(deck []Dice) int {
 			return brains
 		}
 		dices_to_roll := pop_last_n(&deck, 3 - len(old_dices))
-		dices_to_roll = append(dices_to_roll, old_dices)
+		dices_to_roll = append(dices_to_roll, old_dices...)
 		for _, d := range dices_to_roll {
 			inner_walks := 0
-			roll := d.Roll()
-			fmt.Println("You Rolled : ", d.Name, roll)
-			if (roll == "brain") {
+			side := d.Roll()
+			fmt.Println("You Rolled : ", d.Name, side.Name)
+			if (side.Name == "brain") {
 				brains++
-			} else if (roll == "shot") {
+			} else if (side.Name == "shot") {
 				shots++
 			} else {
 				inner_walks++
@@ -93,11 +117,13 @@ func players_go(deck []Dice) int {
 			return brains
 		}
 		
-		old_dices := make([]int, 0)
+		// emptying the slice
+		old_dices = nil
 	}
+	return brains
 }
 
-func pop_last_n(a_ptr *[]Dice, n_to_pop int) []Dice {
+func pop_last_n(a_ptr *[]dice.Dice, n_to_pop int) []dice.Dice {
 
 	a := *a_ptr
 	poped_slice := a[len(a) - n_to_pop : len(a)]
