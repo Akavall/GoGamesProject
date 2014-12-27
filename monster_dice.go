@@ -6,7 +6,7 @@ import (
 	"bufio"
 	"os"
 	"strconv"
-	"strings"x
+	"strings"
 
 	"github.com/Akavall/GoGamesProject/dice"
 )
@@ -19,10 +19,10 @@ func initialize_deck () []Dice {
         
         // Put dices in the deck
 
-        const N_DICES := 13
-        const N_GREEN, N_YELLOW, N_RED := 6, 4, 3
+        const N_DICES = 13
+        const N_GREEN, N_YELLOW, N_RED = 6, 4, 3
 
-	deck = make([]Dice, N_DICES)
+	deck := make([]Dice, N_DICES)
 
 	for i := 0; i < N_GREEN; i++ {
 		deck = append(deck.dices, Dice{Name: "green", Sides: green_sides})
@@ -54,7 +54,7 @@ func players_go(deck []Dice) int {
 	deck = initialize_deck()
 	brains := 0
         shots := 0
-	old_dices = int[]{}
+	old_dices := make([]int, 0)
 
 	// While loop
 	for i := 0; i < 1; i++ {
@@ -93,7 +93,7 @@ func players_go(deck []Dice) int {
 			return brains
 		}
 		
-		old_dices = int[]{}
+		old_dices := make([]int, 0)
 	}
 }
 
