@@ -1,6 +1,6 @@
 package main
 
-import (
+import ( "fmt"
 	 "testing"
 
          "github.com/Akavall/GoGamesProject/dice"
@@ -40,7 +40,7 @@ func TestShuffleDeck(t *testing.T) {
 
         first_position := make([]string, 100)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 100; i++ {
 		shuffled_deck := shuffle_deck(deck)
 		inner_green := 0
 		inner_yellow := 0
@@ -73,4 +73,10 @@ func TestShuffleDeck(t *testing.T) {
 			t.Errorf("name : %s showed up in 1st position 0 times", key)
 		}
 	}
+}
+
+func TestPlayersTurn(t *testing.T) {
+	deck := initialize_deck()
+	score := players_turn(deck)
+	fmt.Println(score)
 }

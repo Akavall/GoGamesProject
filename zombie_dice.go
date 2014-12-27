@@ -72,18 +72,19 @@ func make_slice_of_sides(string_sides []string) []dice.Side {
 	return sides
 }
 
-func players_go(deck []dice.Dice) int {
+func players_turn(deck []dice.Dice) int {
 	// Need to do major refactoring here
-	deck = initialize_deck()
+	// deck = initialize_deck()
 	brains := 0
         shots := 0
 	old_dices := make([]dice.Dice, 0)
         reader := bufio.NewReader(os.Stdin)
 
 	// While loop
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 1; i += 0 {
 		if (len(deck) + len(old_dices) < 3) {
 			fmt.Println("You have ran out of dices")
+                        fmt.Printf("Your final score is : %d", brains)
 			return brains
 		}
 		dices_to_roll := pop_last_n(&deck, 3 - len(old_dices))
@@ -107,6 +108,8 @@ func players_go(deck []dice.Dice) int {
 			return 0
 		}
 
+		fmt.Printf("Your current score is %d\n", brains)
+		fmt.Printf("Your have been shot %d times\n", shots)
 		fmt.Println("Do you want to continue? Hit 1 to contintue and 0 to stop")
 		raw_string, _ := reader.ReadString('\n')
 		clean_string := strings.Replace(raw_string, "\n", "", -1)
@@ -120,6 +123,7 @@ func players_go(deck []dice.Dice) int {
 		// emptying the slice
 		old_dices = nil
 	}
+	fmt.Println("The turn has ended")
 	return brains
 }
 
@@ -135,3 +139,9 @@ func pop_last_n(a_ptr *[]dice.Dice, n_to_pop int) []dice.Dice {
 
 // func monster_dice() {
 // }
+
+func main() {
+	deck := initialize_deck()
+	shuffled_deck := shuffle_deck(deck)
+	players_turn(shuffled_deck)
+}
