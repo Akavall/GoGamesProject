@@ -39,16 +39,6 @@ func initialize_deck () []dice.Dice {
 	for i := 0; i < N_RED; i++ {
 		deck = append(deck, dice.Dice{Name: "red", Sides: red_sides})
 	}
-
-	// Shuffle the deck
-	// rand.Seed(time.Now().UTC().UnixNano())
-
-	// rand_inds := rand.Perm(N_DICES)
-        // shuffled_deck := make([]int, N_DICES)
-  
-        // for ind, rand_ind := range rand_inds {
-	// 	shuffled_deck[ind] = deck[rand_ind]
-	// }
 	
 	return deck
 }
@@ -72,9 +62,8 @@ func make_slice_of_sides(string_sides []string) []dice.Side {
 	return sides
 }
 
-func players_turn(deck []dice.Dice) int {
-	// Need to do major refactoring here
-	// deck = initialize_deck()
+func players_turn(deck []dice.Dice, ai bool) int {
+
 	brains := 0
         shots := 0
 	old_dices := make([]dice.Dice, 0)
@@ -112,9 +101,20 @@ func players_turn(deck []dice.Dice) int {
 		fmt.Printf("Your current score is %d\n", brains)
 		fmt.Printf("Your have been shot %d times\n", shots)
 		fmt.Println("Do you want to continue? Hit 1 to contintue and 0 to stop")
-		raw_string, _ := reader.ReadString('\n')
-		clean_string := strings.Replace(raw_string, "\n", "", -1)
-		answer, _ := strconv.Atoi(clean_string)
+
+		var answer int
+
+		if (ai == false) {
+			raw_string, _ := reader.ReadString('\n')
+			clean_string := strings.Replace(raw_string, "\n", "", -1)
+			answer, _ = strconv.Atoi(clean_string)
+		} else {
+			if (shots == 2) {
+				answer = 0
+			} else {
+				answer = 1
+			}
+		}
 
 		if (answer == 0) {
 			fmt.Println("You scored : ", brains)
@@ -137,11 +137,39 @@ func pop_last_n(a_ptr *[]dice.Dice, n_to_pop int) []dice.Dice {
 	return poped_slice
 }
 
-// func monster_dice() {
-// }
+func play_with_ai() {
+	player_total_score := 0
+	ai_total_score := 0
+	deck := initialize_deck()
+
+	for i := 1; i < 2; i += 0 {
+		shuffled_deck := shuffle_deck(deck)
+		player_score := players_turn(shuffled_deck, false)
+		player_total_score += player_score
+
+		fmt.Printf("Your total score is : %d\n", player_total_score)
+
+		shuffled_deck = shuffle_deck(deck)
+		ai_score := players_turn(shuffled_deck, true)
+		ai_total_score += ai_score
+
+                fmt.Printf("Round : %d\n", i)
+		fmt.Printf("Your total score is : %d\n", player_total_score)
+		fmt.Printf("AI total score is : %d\n", ai_total_score)
+
+		if ( player_total_score  >= 13 || ai_total_score >= 13 ){
+			if (player_total_score > ai_total_score) {
+				fmt.Println("Congratulations You Won!")
+				return
+			} else if (player_total_score < ai_total_score) {
+				fmt.Println("AI won! Better Luck Next Time!")
+				return
+			}
+		}
+	}
+}
+
 
 func main() {
-	deck := initialize_deck()
-	shuffled_deck := shuffle_deck(deck)
-	players_turn(shuffled_deck)
+	play_with_ai()
 }
