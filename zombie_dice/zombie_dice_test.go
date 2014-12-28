@@ -1,6 +1,6 @@
-package main
+package zombie_dice
 
-import ( "fmt"
+import ( //"fmt"
 	 "testing"
 
          "github.com/Akavall/GoGamesProject/dice"
@@ -75,8 +75,8 @@ func TestShuffleDeck(t *testing.T) {
 	}
 }
 
-func TestPlayersTurn(t *testing.T) {
-	deck := initialize_deck()
-	score := players_turn(deck)
-	fmt.Println(score)
-}
+// func TestPlayersTurn(t *testing.T) {
+// 	deck := initialize_deck()
+// 	score := players_turn(deck, false)
+// 	fmt.Println(score)
+// }

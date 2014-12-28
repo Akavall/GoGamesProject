@@ -1,4 +1,4 @@
-package main
+package zombie_dice
 
 import (
 	"fmt"
@@ -137,7 +137,7 @@ func pop_last_n(a_ptr *[]dice.Dice, n_to_pop int) []dice.Dice {
 	return poped_slice
 }
 
-func play_with_ai() {
+func PlayWithAI() {
 	player_total_score := 0
 	ai_total_score := 0
 	deck := initialize_deck()
@@ -170,6 +170,6 @@ func play_with_ai() {
 }
 
 
-func main() {
-	play_with_ai()
-}
+// func main() {
+// 	play_with_ai()
+// }
