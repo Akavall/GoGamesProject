@@ -11,27 +11,16 @@ import (
 	"github.com/Akavall/GoGamesProject/statistics"
 )
 
-func dice_roll(response http.ResponseWriter, request *http.Request) {
+var templates = template.Must(template.ParseFiles("index.html"))
+
+func index(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/html")
 
-	// Parse URL and POST data into the request.Form
-	err := request.ParseForm()
+	err := templates.ExecuteTemplate(response, "index.html", nil)
+
 	if err != nil {
-		log.Fatal(response, fmt.Sprintf("error parsing url %v", err), 500)
+		http.Error(response, err.Error(), http.StatusInternalServerError)
 	}
-
-	num_sides := 6
-	sides_input := request.Form["sides"]
-	if len(sides_input) == 1 {
-		num_sides, _ = strconv.Atoi(sides_input[0])
-	}
-
-	my_dice := dice.InitDefaultDice(num_sides)
-	side := my_dice.Roll()
-	log.Printf("Rolled %d for request: \n\t%v", side.Numerical_value, request)
-
-	t, _ := template.ParseFiles("index.html")
-	t.Execute(response, side)
 }
 
 func four_dice_roll(response http.ResponseWriter, request *http.Request) {
@@ -66,10 +55,31 @@ func four_dice_roll(response http.ResponseWriter, request *http.Request) {
 	fmt.Fprintf(response, " score : %d\n roll prob : %f\n prob lower : %f\n prob higher : %f\n", score, roll_prob, prob_lower, prob_higher)
 }
 
+func roll_dice(response http.ResponseWriter, request *http.Request) {
+	// Parse URL and POST data into the request.Form
+	err := request.ParseForm()
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusInternalServerError)
+	}
+
+	num_sides := 6
+	sides_input := request.Form["sides"]
+	if len(sides_input) == 1 {
+		num_sides, _ = strconv.Atoi(sides_input[0])
+	}
+
+	my_dice := dice.InitDefaultDice(num_sides)
+	side := my_dice.Roll()
+	log.Printf("Rolled %d for request: \n\t%v", side.Numerical_value, request)
+
+	fmt.Fprintf(response, "%d", side.Numerical_value)
+}
+
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/dice_roll", dice_roll)
+	mux.HandleFunc("/", index)
 	mux.HandleFunc("/four_dice_roll", four_dice_roll)
+	mux.HandleFunc("/roll_dice", roll_dice)
 	log.Printf("Started dumb Dice web server! Try it on http://localhost:8000")
 	err := http.ListenAndServe(":8000", mux)
 
