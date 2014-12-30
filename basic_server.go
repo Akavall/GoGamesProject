@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -11,7 +12,7 @@ import (
 )
 
 func dice_roll(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("Content-type", "text/plain")
+	response.Header().Set("Content-type", "text/html")
 
 	// Parse URL and POST data into the request.Form
 	err := request.ParseForm()
@@ -29,9 +30,8 @@ func dice_roll(response http.ResponseWriter, request *http.Request) {
 	side := my_dice.Roll()
 	log.Printf("Rolled %d for request: \n\t%v", side.Numerical_value, request)
 
-	// Actual response sent to web client
-	fmt.Fprintf(response, "\nRolling dice with %d sides:\n", num_sides)
-	fmt.Fprintf(response, "%d", side.Numerical_value)
+	t, _ := template.ParseFiles("index.html")
+	t.Execute(response, side)
 }
 
 func four_dice_roll(response http.ResponseWriter, request *http.Request) {
