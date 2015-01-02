@@ -1,0 +1,48 @@
+<html lang="en">
+<head>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"> </script>
+<title>Roll the die!</title>
+</head>
+<body>
+<h1>Roll the dice!</h1>
+
+<div id="dice_roll">
+0
+</div>
+
+<div id="preset">
+<input type="button" onclick="rollDice(6)" value="Roll 6 sided!" />
+<input type="button" onclick="rollDice(12)" value="Roll 12 sided!" />
+<input type="button" onclick="rollDice(24)" value="Roll 24 sided!" />
+</div>
+
+<div id="custom">
+Custom sides: <input type="text" id="t1" /><input type="button" onclick="parseAndRoll()" value="Roll custom!" />
+</div>
+
+<script type="text/javascript">
+function rollDice(num_sides) {
+    $.post("http://localhost:8000/roll_dice?sides="+num_sides, "", function(data, status) {
+            $("#dice_roll").empty();
+            $("#dice_roll").append(data);
+            });
+}
+
+function parseAndRoll() {
+    var num_sides = parseInt(document.getElementById("t1").value)
+    
+    if(isInt(num_sides) && num_sides > 1) {
+        rollDice(num_sides)
+    }
+    else {
+        document.getElementById("t1").value = "Please enter an integer greater than 1!"
+    }
+}
+
+function isInt(value) {
+    return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value))
+}
+</script>
+
+</body>
+</html>
