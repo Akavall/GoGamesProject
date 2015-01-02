@@ -17,8 +17,13 @@
 </div>
 
 <div id="custom">
-Custom sides: <input type="text" id="t1" /><input type="button" onclick="parseAndRoll()" value="Roll custom!" />
+Custom number of sides: <input type="text" id="t1" /><input type="button" onclick="parseAndRoll()" value="Any number of Sides!" />
 </div>
+
+<div id="custom sides">
+Custom sides: <input type="text" id="t2" /><input type="button" onclick="takeStringAndRoll()" value="Any sides" />
+</div>
+
 
 <script type="text/javascript">
 function rollDice(num_sides) {
@@ -42,6 +47,20 @@ function parseAndRoll() {
 function isInt(value) {
     return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value))
 }
+
+function takeStringAndRoll() {
+
+        var custom_sides = document.getElementById("t2").value;
+        var sides_array = custom_sides.split(",");  
+        var num_sides = sides_array.length
+    
+        $.post("http://localhost:8000/roll_dice?sides="+num_sides, "", function(data, status)     {
+                 $("#dice_roll").empty();
+                 $("#dice_roll").append(sides_array[data - 1]);
+            });
+        
+}
+
 </script>
 
 </body>
