@@ -69,8 +69,7 @@ func players_turn(deck []dice.Dice, ai bool) int {
 	old_dices := make([]dice.Dice, 0)
 	reader := bufio.NewReader(os.Stdin)
 
-	i := 0
-	for i < 1 {
+	for {
 		if len(deck)+len(old_dices) < 3 {
 			fmt.Println("You have ran out of dices")
 			fmt.Printf("Your final score is : %d", brains)
