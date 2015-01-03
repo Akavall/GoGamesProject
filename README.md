@@ -1,4 +1,4 @@
-*Build a binary file example:*
+**Build a binary file example:**
 
 In the root directory GoGamesProject run
 
