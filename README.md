@@ -2,7 +2,9 @@ Build a binary file example:
 
 In the root directory GoGamesProject run
 
+```
 go build basic_server.go
+```
 
 Run just one test file example:
 
