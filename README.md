@@ -14,7 +14,7 @@ In GoGamesProject/dice run
 go test
 ```
 
-**Run all test riles example:**
+**Run all test files example:**
 
 In GoGamesProject run
 
