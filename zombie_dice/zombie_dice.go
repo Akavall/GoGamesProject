@@ -139,7 +139,9 @@ func PlayWithAI() {
 	ai_total_score := 0
 	deck := initialize_deck()
 
-	for i := 1; i < 2; i += 0 {
+	round_counter := 0
+	for {
+		round_counter++
 		shuffled_deck := shuffle_deck(deck)
 		player_score := players_turn(shuffled_deck, false)
 		player_total_score += player_score
@@ -150,7 +152,7 @@ func PlayWithAI() {
 		ai_score := players_turn(shuffled_deck, true)
 		ai_total_score += ai_score
 
-		fmt.Printf("Round : %d\n", i)
+		fmt.Printf("Round : %d\n", round_counter)
 		fmt.Printf("Your total score is : %d\n", player_total_score)
 		fmt.Printf("AI total score is : %d\n", ai_total_score)
 
@@ -165,4 +167,3 @@ func PlayWithAI() {
 		}
 	}
 }
-
