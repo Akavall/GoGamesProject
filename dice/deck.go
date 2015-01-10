@@ -1,33 +1,29 @@
 package dice
 
 import (
-        "math/rand"
-        "time"
-       )
+	"math/rand"
+	"time"
+)
 
 type Deck struct {
-    Name    string
-    Dices //to-do: refactor Dice->Die and Dices->Dice 
+	Name string
+	Dices
 }
 
 type Dices []Dice
 
-func (d Deck) Shuffle() Deck {
-    if len(d.Dices) <= 1 {
-        return d
-    }
+func (d *Deck) Shuffle() {
+	if len(d.Dices) <= 1 {
+		return
+	}
 
-    rand.Seed(time.Now().UTC().UnixNano())
-    rand_inds := rand.Perm(len(d.Dices))
-    
-    shuffled_dice := make(Dices, len(d.Dices))
-    for i, rand_ind := range rand_inds {
-        shuffled_dice[i] = d.Dices[rand_ind] 
-    }
+	rand.Seed(time.Now().UTC().UnixNano())
+	rand_inds := rand.Perm(len(d.Dices))
 
-    return Deck{Dices: shuffled_dice}
-}
+	shuffled_dice := make(Dices, len(d.Dices))
+	for i, rand_ind := range rand_inds {
+		shuffled_dice[i] = d.Dices[rand_ind]
+	}
 
-func (d Deck) PopDice(n int) Dices {
-    return nil
+	d.Dices = shuffled_dice
 }
