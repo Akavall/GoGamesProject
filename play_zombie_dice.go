@@ -1,7 +1,6 @@
 package main
 
 import (
-        //"github.com/Akavall/GoGamesProject/dice"
 	"github.com/Akavall/GoGamesProject/zombie_dice"
 )
 
