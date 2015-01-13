@@ -1,6 +1,7 @@
 package dice
 
 import (
+	"errors"
 	"math/rand"
 	"time"
 )
@@ -9,8 +10,6 @@ type Deck struct {
 	Name string
 	Dices
 }
-
-type Dices []Dice
 
 func (d *Deck) Shuffle() {
 	if len(d.Dices) <= 1 {
@@ -26,4 +25,14 @@ func (d *Deck) Shuffle() {
 	}
 
 	d.Dices = shuffled_dice
+}
+
+func (d *Deck) DealDice(num_dice int) (Dices, error) {
+	if num_dice <= len(d.Dices) {
+		dealt_dice := d.Dices[len(d.Dices)-num_dice : len(d.Dices)]
+		d.Dices = append(d.Dices[:0], d.Dices[:len(d.Dices)-num_dice]...)
+		return dealt_dice, nil
+	} else {
+		return nil, errors.New("Not enough dice in deck!")
+	}
 }
