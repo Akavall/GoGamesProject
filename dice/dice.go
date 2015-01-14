@@ -11,6 +11,8 @@ type Dice struct {
 	Sides
 }
 
+type Dices []Dice
+
 func (d Dice) Roll() Side {
 	rand.Seed(time.Now().UTC().UnixNano())
 	random_roll := rand.Int() % len(d.Sides)
