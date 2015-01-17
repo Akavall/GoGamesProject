@@ -51,12 +51,11 @@ func make_slice_of_sides(string_sides []string) []dice.Side {
 	return sides
 }
 
-func players_turn(deck dice.Deck, ai bool) (int, error) {
+func players_turn(deck dice.Deck, player_name string) (int, error) {
 
 	brains := 0
 	shots := 0
-	reader := bufio.NewReader(os.Stdin)
-
+	
 	for {
 		if len(deck.Dices) < 3 {
 			fmt.Println("You have ran out of dices")
@@ -92,16 +91,16 @@ func players_turn(deck dice.Deck, ai bool) (int, error) {
 
 		var answer int
 
-		if ai == false {
-			raw_string, _ := reader.ReadString('\n')
-			clean_string := strings.Replace(raw_string, "\n", "", -1)
-			answer, _ = strconv.Atoi(clean_string)
-		} else {
-			if shots == 2 {
-				answer = 0
-			} else {
-				answer = 1
-			}
+		switch player_name {
+		case "human":
+			answer = get_terminal_input()
+		case "greedy":
+			answer = GreedyAI(shots)
+		case "careful":
+                        answer = CarefulAI(shots)
+                case "random":
+			answer = RandomAI()
+		
 		}
 
 		if answer == 0 {
@@ -118,11 +117,13 @@ func PlayWithAI() {
 	ai_total_score := 0
 	deck := initialize_deck()
 
+	ai_name := select_ai()
+
 	round_counter := 0
 	for {
 		round_counter++
 		deck.Shuffle()
-		player_score, err := players_turn(deck, false)
+		player_score, err := players_turn(deck, "human")
 		if err != nil {
 			fmt.Println("Error Occurred on players turn")
 			return
@@ -132,7 +133,7 @@ func PlayWithAI() {
 		fmt.Printf("Your total score is : %d\n", player_total_score)
 
 		deck.Shuffle()
-		ai_score, err_ai := players_turn(deck, true)
+		ai_score, err_ai := players_turn(deck, ai_name)
 		if err_ai != nil {
 			fmt.Println("Error Occurred on ai turn")
 			return
@@ -153,5 +154,34 @@ func PlayWithAI() {
 				return
 			}
 		}
+	}
+}
+
+func get_terminal_input() int {
+	reader := bufio.NewReader(os.Stdin)
+	raw_string, _ := reader.ReadString('\n')
+	clean_string := strings.Replace(raw_string, "\n", "", -1)
+	answer, _ := strconv.Atoi(clean_string)
+	return answer
+}
+
+func select_ai() string {
+back:
+	fmt.Println("Please Select an AI you want to play against")
+	fmt.Printf("Greedy : press %d\n", 1)
+	fmt.Printf("Careful : press %d\n", 2)
+	fmt.Printf("Random : press %d\n", 3)
+
+        answer := get_terminal_input()
+	switch answer {
+	case 1:
+		return "greedy"
+	case 2:
+		return "careful"
+	case 3:
+		return "random"
+	default:
+		fmt.Println("This is not a valid selction, please try again")
+		goto back
 	}
 }
