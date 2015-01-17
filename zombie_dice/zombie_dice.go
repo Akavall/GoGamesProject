@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	
+
 	"github.com/Akavall/GoGamesProject/dice"
 )
 
@@ -38,7 +38,7 @@ func initialize_deck() dice.Deck {
 		dices = append(dices, dice.Dice{Name: "red", Sides: red_sides})
 	}
 
-	zombie_dice_deck := dice.Deck{Name: "ZombieDiceDeck", Dices:dices}
+	zombie_dice_deck := dice.Deck{Name: "ZombieDiceDeck", Dices: dices}
 
 	return zombie_dice_deck
 }
@@ -55,7 +55,7 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 
 	brains := 0
 	shots := 0
-	
+
 	for {
 		if len(deck.Dices) < 3 {
 			fmt.Println("You have ran out of dices")
@@ -97,10 +97,10 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 		case "greedy":
 			answer = GreedyAI(shots)
 		case "careful":
-                        answer = CarefulAI(shots)
-                case "random":
+			answer = CarefulAI(shots)
+		case "random":
 			answer = RandomAI()
-		
+
 		}
 
 		if answer == 0 {
@@ -138,7 +138,7 @@ func PlayWithAI() {
 			fmt.Println("Error Occurred on ai turn")
 			return
 		}
-			
+
 		ai_total_score += ai_score
 
 		fmt.Printf("Round : %d\n", round_counter)
@@ -172,7 +172,7 @@ back:
 	fmt.Printf("Careful : press %d\n", 2)
 	fmt.Printf("Random : press %d\n", 3)
 
-        answer := get_terminal_input()
+	answer := get_terminal_input()
 	switch answer {
 	case 1:
 		return "greedy"
