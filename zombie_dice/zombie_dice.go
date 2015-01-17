@@ -55,11 +55,11 @@ func players_turn(deck dice.Deck, ai bool) (int, error) {
 
 	brains := 0
 	shots := 0
-	old_dices := make([]dice.Dice, 0)
+	//old_dices := make([]dice.Dice, 0)
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		if len(deck.Dices)+len(old_dices) < 3 {
+		if len(deck.Dices) < 3 {
 			fmt.Println("You have ran out of dices")
 			fmt.Printf("Your final score is : %d", brains)
 			return brains, nil
@@ -68,8 +68,8 @@ func players_turn(deck dice.Deck, ai bool) (int, error) {
 		if err != nil {
 			return 0, err
 		}
-		dices_to_roll = append(dices_to_roll, old_dices...)
-		old_dices = nil
+		//dices_to_roll = append(dices_to_roll, old_dices...)
+		//old_dices = nil
 		for _, d := range dices_to_roll {
 			inner_walks := 0
 			side := d.Roll()
@@ -80,7 +80,7 @@ func players_turn(deck dice.Deck, ai bool) (int, error) {
 				shots++
 			} else {
 				inner_walks++
-				old_dices = append(old_dices, d)
+				//old_dices = append(old_dices, d)
 			}
 		}
 
