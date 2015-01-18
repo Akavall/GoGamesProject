@@ -99,6 +99,19 @@ func TestDealDiceFailure(t *testing.T) {
 	}
 }
 
+func TestAppendDice(t *testing.T) {
+	const TEST_N_SIDES = 20
+	deck := initBasicTestDeck(DEFAULT_DECK_SIZE)
+	my_dice := InitDefaultDice(TEST_N_SIDES)
+	deck.AppendDice(my_dice)
+	// I am getting back the dice that I created
+	dices, _ := deck.DealDice(1)
+
+	if len(dices[0].Sides) != TEST_N_SIDES {
+		t.Errorf(`Expected %d sides, but got %d`, TEST_N_SIDES, len(dices[0].Sides))
+	}
+}
+
 func initBasicTestDeck(deck_size int) Deck {
 	dice_list := make(Dices, deck_size)
 	for i := 0; i < deck_size; i++ {
