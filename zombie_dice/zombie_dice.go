@@ -55,20 +55,22 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 
 	brains := 0
 	shots := 0
-
+	
 	for {
 		if len(deck.Dices) < 3 {
 			fmt.Println("You have ran out of dices")
 			fmt.Printf("Your final score is : %d", brains)
 			return brains, nil
 		}
+		// We need to shuffle because walks are appended to the very
+                // end of the deck
+		deck.Shuffle()
 		dices_to_roll, err := deck.DealDice(3)
 		if err != nil {
 			return 0, err
 		}
 
 		for _, d := range dices_to_roll {
-			inner_walks := 0
 			side := d.Roll()
 			fmt.Println("You Rolled : ", d.Name, side.Name)
 			if side.Name == "brain" {
@@ -76,7 +78,9 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 			} else if side.Name == "shot" {
 				shots++
 			} else {
-				inner_walks++
+				// Since walks get replayed we have to 
+                                // put them back in the deck
+				deck.AppendDice(d)
 			}
 		}
 
