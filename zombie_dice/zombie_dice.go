@@ -3,16 +3,14 @@ package zombie_dice
 import (
 	"bufio"
 	"fmt"
-	"math/rand"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/Akavall/GoGamesProject/dice"
 )
 
-func initialize_deck() []dice.Dice {
+func initialize_deck() dice.Deck {
 
 	green := []string{"shot", "walk", "walk", "brain", "brain", "brain"}
 	yellow := []string{"shot", "shot", "walk", "walk", "brain", "brain"}
@@ -26,32 +24,23 @@ func initialize_deck() []dice.Dice {
 
 	const N_GREEN, N_YELLOW, N_RED = 6, 4, 3
 
-	deck := make([]dice.Dice, 0)
+	dices := make([]dice.Dice, 0)
 
 	for i := 0; i < N_GREEN; i++ {
-		deck = append(deck, dice.Dice{Name: "green", Sides: green_sides})
+		dices = append(dices, dice.Dice{Name: "green", Sides: green_sides})
 	}
 
 	for i := 0; i < N_YELLOW; i++ {
-		deck = append(deck, dice.Dice{Name: "yellow", Sides: yellow_sides})
+		dices = append(dices, dice.Dice{Name: "yellow", Sides: yellow_sides})
 	}
 
 	for i := 0; i < N_RED; i++ {
-		deck = append(deck, dice.Dice{Name: "red", Sides: red_sides})
+		dices = append(dices, dice.Dice{Name: "red", Sides: red_sides})
 	}
 
-	return deck
-}
+	zombie_dice_deck := dice.Deck{Name: "ZombieDiceDeck", Dices: dices}
 
-func shuffle_deck(deck []dice.Dice) []dice.Dice {
-	rand.Seed(time.Now().UTC().UnixNano())
-	rand_inds := rand.Perm(len(deck))
-	shuffled_deck := make([]dice.Dice, len(deck))
-
-	for ind, rand_ind := range rand_inds {
-		shuffled_deck[ind] = deck[rand_ind]
-	}
-	return shuffled_deck
+	return zombie_dice_deck
 }
 
 func make_slice_of_sides(string_sides []string) []dice.Side {
@@ -62,24 +51,24 @@ func make_slice_of_sides(string_sides []string) []dice.Side {
 	return sides
 }
 
-func players_turn(deck []dice.Dice, ai bool) int {
+func players_turn(deck dice.Deck, player_name string) (int, error) {
 
 	brains := 0
 	shots := 0
-	old_dices := make([]dice.Dice, 0)
-	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		if len(deck)+len(old_dices) < 3 {
+		if len(deck.Dices) < 3 {
 			fmt.Println("You have ran out of dices")
 			fmt.Printf("Your final score is : %d", brains)
-			return brains
+			return brains, nil
 		}
-		dices_to_roll := pop_last_n(&deck, 3-len(old_dices))
-		dices_to_roll = append(dices_to_roll, old_dices...)
-		old_dices = nil
+
+		dices_to_roll, err := deck.DealDice(3)
+		if err != nil {
+			return 0, err
+		}
+
 		for _, d := range dices_to_roll {
-			inner_walks := 0
 			side := d.Roll()
 			fmt.Println("You Rolled : ", d.Name, side.Name)
 			if side.Name == "brain" {
@@ -87,14 +76,15 @@ func players_turn(deck []dice.Dice, ai bool) int {
 			} else if side.Name == "shot" {
 				shots++
 			} else {
-				inner_walks++
-				old_dices = append(old_dices, d)
+				// Since walks get replayed we have to
+				// put them back in the deck
+				deck.AppendDice(d)
 			}
 		}
 
 		if shots >= 3 {
 			fmt.Println("You have been shot 3 times, you've scored 0")
-			return 0
+			return 0, nil
 		}
 
 		fmt.Printf("Your current score is %d\n", brains)
@@ -103,35 +93,25 @@ func players_turn(deck []dice.Dice, ai bool) int {
 
 		var answer int
 
-		if ai == false {
-			raw_string, _ := reader.ReadString('\n')
-			clean_string := strings.Replace(raw_string, "\n", "", -1)
-			answer, _ = strconv.Atoi(clean_string)
-		} else {
-			if shots == 2 {
-				answer = 0
-			} else {
-				answer = 1
-			}
+		switch player_name {
+		case "human":
+			answer = get_terminal_input()
+		case "greedy":
+			answer = GreedyAI(shots)
+		case "careful":
+			answer = CarefulAI(shots)
+		case "random":
+			answer = RandomAI()
+
 		}
 
 		if answer == 0 {
 			fmt.Println("You scored : ", brains)
-			return brains
+			return brains, nil
 		}
 	}
 	fmt.Println("The turn has ended")
-	return brains
-}
-
-func pop_last_n(a_ptr *[]dice.Dice, n_to_pop int) []dice.Dice {
-
-	a := *a_ptr
-	poped_slice := a[len(a)-n_to_pop : len(a)]
-	a = append(a[:0], a[:len(a)-n_to_pop]...)
-	*a_ptr = a
-
-	return poped_slice
+	return brains, nil
 }
 
 func PlayWithAI() {
@@ -139,17 +119,28 @@ func PlayWithAI() {
 	ai_total_score := 0
 	deck := initialize_deck()
 
+	ai_name := select_ai()
+
 	round_counter := 0
 	for {
 		round_counter++
-		shuffled_deck := shuffle_deck(deck)
-		player_score := players_turn(shuffled_deck, false)
+		deck.Shuffle()
+		player_score, err := players_turn(deck, "human")
+		if err != nil {
+			fmt.Println("Error Occurred on players turn")
+			return
+		}
 		player_total_score += player_score
 
 		fmt.Printf("Your total score is : %d\n", player_total_score)
 
-		shuffled_deck = shuffle_deck(deck)
-		ai_score := players_turn(shuffled_deck, true)
+		deck.Shuffle()
+		ai_score, err_ai := players_turn(deck, ai_name)
+		if err_ai != nil {
+			fmt.Println("Error Occurred on ai turn")
+			return
+		}
+
 		ai_total_score += ai_score
 
 		fmt.Printf("Round : %d\n", round_counter)
@@ -165,5 +156,34 @@ func PlayWithAI() {
 				return
 			}
 		}
+	}
+}
+
+func get_terminal_input() int {
+	reader := bufio.NewReader(os.Stdin)
+	raw_string, _ := reader.ReadString('\n')
+	clean_string := strings.Replace(raw_string, "\n", "", -1)
+	answer, _ := strconv.Atoi(clean_string)
+	return answer
+}
+
+func select_ai() string {
+back:
+	fmt.Println("Please Select an AI you want to play against")
+	fmt.Printf("Greedy : press %d\n", 1)
+	fmt.Printf("Careful : press %d\n", 2)
+	fmt.Printf("Random : press %d\n", 3)
+
+	answer := get_terminal_input()
+	switch answer {
+	case 1:
+		return "greedy"
+	case 2:
+		return "careful"
+	case 3:
+		return "random"
+	default:
+		fmt.Println("This is not a valid selction, please try again")
+		goto back
 	}
 }

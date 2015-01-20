@@ -36,3 +36,7 @@ func (d *Deck) DealDice(num_dice int) (Dices, error) {
 		return nil, errors.New("Not enough dice in deck!")
 	}
 }
+
+func (d *Deck) AppendDice(new_dice Dice) {
+	d.Dices = append(d.Dices, new_dice)
+}
