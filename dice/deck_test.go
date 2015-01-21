@@ -99,11 +99,11 @@ func TestDealDiceFailure(t *testing.T) {
 	}
 }
 
-func TestAppendDice(t *testing.T) {
+func TestAddDice(t *testing.T) {
 	const TEST_N_SIDES = 20
 	deck := initBasicTestDeck(DEFAULT_DECK_SIZE)
 	my_dice := InitDefaultDice(TEST_N_SIDES)
-	deck.AppendDice(my_dice)
+	deck.AddDice(my_dice)
 	// I am getting back the dice that I created
 	dices, _ := deck.DealDice(1)
 

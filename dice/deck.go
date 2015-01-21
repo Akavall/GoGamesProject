@@ -37,6 +37,6 @@ func (d *Deck) DealDice(num_dice int) (Dices, error) {
 	}
 }
 
-func (d *Deck) AppendDice(new_dice Dice) {
+func (d *Deck) AddDice(new_dice Dice) {
 	d.Dices = append(d.Dices, new_dice)
 }
