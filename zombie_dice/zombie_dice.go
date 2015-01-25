@@ -78,7 +78,7 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 			} else {
 				// Since walks get replayed we have to
 				// put them back in the deck
-				deck.AppendDice(d)
+				deck.AddDice(d)
 			}
 		}
 
