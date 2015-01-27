@@ -4,6 +4,10 @@ import (
 	"github.com/Akavall/GoGamesProject/dice"
 )
 
+type AI interface {
+	ShouldKeepGoing() int
+}
+
 func GreedyAI(shots int) int {
 	if shots == 2 {
 		return 0

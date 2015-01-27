@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Akavall/GoGamesProject/dice"
 )
@@ -58,8 +59,8 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 
 	for {
 		if len(deck.Dices) < 3 {
-			fmt.Println("You have ran out of dices")
-			fmt.Printf("Your final score is : %d", brains)
+			fmt.Printf("%s have ran out of dices", player_name)
+			fmt.Printf("%s final score is : %d", player_name, brains)
 			return brains, nil
 		}
 
@@ -70,7 +71,7 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 
 		for _, d := range dices_to_roll {
 			side := d.Roll()
-			fmt.Println("You Rolled : ", d.Name, side.Name)
+			fmt.Printf("%s rolled : %s, %s\n", player_name, d.Name, side.Name)
 			if side.Name == "brain" {
 				brains++
 			} else if side.Name == "shot" {
@@ -83,13 +84,19 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 		}
 
 		if shots >= 3 {
-			fmt.Println("You have been shot 3 times, you've scored 0")
+			fmt.Printf("%s have been shot 3 times, %s scored 0\n\n", player_name, player_name)
+			fmt.Println("turn ending")
+			time.Sleep(3 * 1e9)
 			return 0, nil
 		}
 
-		fmt.Printf("Your current score is %d\n", brains)
-		fmt.Printf("Your have been shot %d times\n", shots)
+		fmt.Printf("%s current score is : %d\n", player_name, brains)
+		fmt.Printf("%s have been shot : %d times\n", player_name, shots)
 		fmt.Println("Do you want to continue? Hit 1 to contintue and 0 to stop")
+
+		if player_name != "human" {
+			time.Sleep(5 * 1e9)
+		}
 
 		var answer int
 
@@ -106,7 +113,11 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 		}
 
 		if answer == 0 {
-			fmt.Println("You scored : ", brains)
+			fmt.Printf("%s %d : \n", player_name, brains)
+			if player_name != "human" {
+				fmt.Println("turn ending...")
+				time.Sleep(3 * 1e9)
+			}
 			return brains, nil
 		}
 	}
@@ -145,14 +156,14 @@ func PlayWithAI() {
 
 		fmt.Printf("Round : %d\n", round_counter)
 		fmt.Printf("Your total score is : %d\n", player_total_score)
-		fmt.Printf("AI total score is : %d\n", ai_total_score)
+		fmt.Printf("AI : %s total score is : %d\n", ai_name, ai_total_score)
 
 		if player_total_score >= 13 || ai_total_score >= 13 {
 			if player_total_score > ai_total_score {
 				fmt.Println("Congratulations You Won!")
 				return
 			} else if player_total_score < ai_total_score {
-				fmt.Println("AI won! Better Luck Next Time!")
+				fmt.Printf("AI : %s won! Better Luck Next Time!\n", ai_name)
 				return
 			}
 		}
@@ -187,3 +198,4 @@ back:
 		goto back
 	}
 }
+
