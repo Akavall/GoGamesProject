@@ -27,7 +27,7 @@ func RandomAI() int {
 	return two_sided_dice.Roll().Numerical_value - 1
 }
 
-func Simulationist(shots int, brains int, dice.Deck deck_left) int {
+func SimulationistAI(shots int, brains int, deck_left dice.Deck) int {
 	n_iterations := 10000
 	n_killed := 0
 	n_brains := 0
@@ -36,12 +36,12 @@ func Simulationist(shots int, brains int, dice.Deck deck_left) int {
 		n_inner_shots := 0
 		n_inner_brains := 0
 		for j := 0; j < 3; j++ {
-			side := deck_left[j].Roll()
+			side := deck_left.Dices[j].Roll()
 			if side.Name == "brain" {
 				n_inner_brains++
 			} else if side.Name == "shot" {
 				n_inner_shots++
-				if (inner_shots + shots) >= 3 {
+				if (n_inner_shots + shots) >= 3 {
 					n_killed++
 					continue
 				}
