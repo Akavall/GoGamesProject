@@ -45,18 +45,28 @@ func Simulationist(shots int, brains int, dice.Deck deck_left) int {
 					n_killed++
 					continue
 				}
-				// If did not get shot, we get the brains
+				// If we did not get shot, we get the brains
 				n_brains += n_inner_brains
 			}
 		}
 	}
 
-	expected_brains := float64(n_brains) / float64(n_iterations)
-	chance_to_get_killed := float64(n_killed) / float64(n_iterations)
+	// This commented out code illustrates the intentions
+        // more clearly than simplified code below
 
-	if expected_brains > chance_to_get_killed * float64(brains) {
+	// expected_brains := float64(n_brains) / float64(n_iterations)
+	// chance_to_get_killed := float64(n_killed) / float64(n_iterations)
+
+	// if expected_brains > chance_to_get_killed * float64(brains) {
+	// 	return 1
+	// } else {
+	// 	return 0
+	// }
+
+	if n_brains > n_killed * brains {
 		return 1
 	} else {
 		return 0
 	}
+
 }
