@@ -56,6 +56,7 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 
 	brains := 0
 	shots := 0
+	walks := 0
 
 	for {
 		if len(deck.Dices) < 3 {
@@ -80,6 +81,7 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 				// Since walks get replayed we have to
 				// put them back in the deck
 				deck.AddDice(d)
+				walks++
 			}
 		}
 
@@ -110,7 +112,7 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 		case "random":
 			answer = RandomAI()
 		case "simulationist":
-			answer = SimulationistAI(shots, brains, deck)
+			answer = SimulationistAI(shots, brains, walks, deck)
 
 		}
 

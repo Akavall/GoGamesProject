@@ -1,6 +1,7 @@
 package zombie_dice
 
 import (
+	"fmt"
 	"github.com/Akavall/GoGamesProject/dice"
 )
 
@@ -23,16 +24,29 @@ func RandomAI() int {
 	return two_sided_dice.Roll().Numerical_value - 1
 }
 
-func SimulationistAI(shots int, brains int, deck_left dice.Deck) int {
+func SimulationistAI(shots, brains, walks int, deck_left dice.Deck) int {
+	// This is a dumb simulationist it misses walk dices
 	n_iterations := 10000
 	n_killed := 0
 	n_brains := 0
+	walk_dices, err := deck_left.DealDice(walks)
+	if err != nil {
+		fmt.Println(err)
+	}
 	for i := 0; i < n_iterations; i++ {
 		deck_left.Shuffle()
 		n_inner_shots := 0
 		n_inner_brains := 0
 		for j := 0; j < 3; j++ {
-			side := deck_left.Dices[j].Roll()
+			// walks have to get rolled
+			var side dice.Side 
+			if j < len(walk_dices) {
+				side = walk_dices[j].Roll()
+			} else { // since rest of the deck is shuffled
+                                 // it does not matter which dices we choose
+				side = deck_left.Dices[j].Roll()
+			}
+
 			if side.Name == "brain" {
 				n_inner_brains++
 			} else if side.Name == "shot" {
