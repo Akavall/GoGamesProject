@@ -42,6 +42,9 @@ func SimulationistAI(previous_shots, already_gained_brains, walks int, deck_left
 		
 	}
 
+	fmt.Println("all_brains", all_brains)
+	fmt.Println("to lose", all_killed * already_gained_brains)
+
 	if all_brains > all_killed * already_gained_brains {
 		return 1
 	} else {
@@ -53,7 +56,6 @@ func SimulationistAI(previous_shots, already_gained_brains, walks int, deck_left
 func simulate_one_roll(walk_dices *dice.Dices, deck_left *dice.Deck, previous_shots int) (int, int) {
 	n_inner_shots := 0
 	n_inner_brains := 0
-	n_brains := 0
 	for j := 0; j < 3; j++ {
 		var side dice.Side 
 		if j < len(*walk_dices) {
@@ -69,10 +71,8 @@ func simulate_one_roll(walk_dices *dice.Dices, deck_left *dice.Deck, previous_sh
 			if (n_inner_shots + previous_shots) >= 3 {
 				return 1, 0
 			}
-			//If we did not get shot, we get the brains
-			n_brains += n_inner_brains
 		}
 	}
-	return 0, n_brains
+	return 0, n_inner_brains
 
 }
