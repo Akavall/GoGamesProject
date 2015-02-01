@@ -25,7 +25,7 @@ func RandomAI() int {
 }
 
 func SimulationistAI(shots, brains, walks int, deck_left dice.Deck) int {
-	// This is a dumb simulationist it misses walk dices
+	// Refactor this:
 	n_iterations := 10000
 	n_killed := 0
 	n_brains := 0
