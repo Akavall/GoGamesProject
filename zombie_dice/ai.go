@@ -24,13 +24,9 @@ func RandomAI() int {
 	return two_sided_dice.Roll().Numerical_value - 1
 }
 
-<<<<<<< HEAD
-func SimulationistAI(shots, brains, walks int, deck_left dice.Deck) int {
-	// Refactor this:
-=======
 func SimulationistAI(previous_shots, already_gained_brains, walks int, deck_left dice.Deck) int {
 	// This is a dumb simulationist it misses walk dices
->>>>>>> 72d4c1c3c4f1984d71c0ae0f628471aa37b122a9
+
 	n_iterations := 10000
 	all_killed := 0
 	all_brains := 0
