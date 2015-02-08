@@ -2,127 +2,183 @@ package zombie_dice
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Akavall/GoGamesProject/dice"
+	"github.com/nu7hatch/gouuid"
 )
 
-func players_turn(deck ZombieDeck, player_name string) (int, error) {
+type GameState struct {
+	Players
+	ZombieDeck
+	uuid         *uuid.UUID
+	round_number int
+}
 
-	brains := 0
-	shots := 0
+type Players []Player
 
-	for {
-		if len(deck.Deck.Dices) < 3 {
-			fmt.Printf("%s have ran out of dices", player_name)
-			fmt.Printf("%s final score is : %d", player_name, brains)
-			return brains, nil
-		}
+type Player struct {
+	playerState
+	Name        string
+	is_ai       bool
+	total_score *int
+}
 
-		dices_to_roll, err := deck.DealDice(3)
-		if err != nil {
-			return 0, err
-		}
+type playerState struct {
+	turns_taken   int
+	current_score int
+	times_shot    int
+	is_dead       bool
+}
 
-		for _, d := range dices_to_roll {
-			side := d.Roll()
-			fmt.Printf("%s rolled : %s, %s\n", player_name, d.Name, side.Name)
-			if side.Name == "brain" {
-				brains++
-			} else if side.Name == "shot" {
-				shots++
-			} else {
-				// Since walks get replayed we have to
-				// put them back in the deck
-				deck.AddDice(d)
-			}
-		}
+func InitGameState(players Players) (gs GameState, err error) {
+	deck := InitZombieDeck()
+	uuid, err := uuid.NewV4()
+	if err != nil {
+		return
+	}
 
-		if shots >= 3 {
-			fmt.Printf("%s have been shot 3 times, %s scored 0\n\n", player_name, player_name)
-			fmt.Println("turn ending")
-			time.Sleep(3 * 1e9)
-			return 0, nil
-		}
+	return GameState{Players: players, ZombieDeck: deck, uuid: uuid, round_number: 0}, nil
+}
 
-		fmt.Printf("%s current score is : %d\n", player_name, brains)
-		fmt.Printf("%s have been shot : %d times\n", player_name, shots)
-		fmt.Println("Do you want to continue? Hit 1 to contintue and 0 to stop")
+func (p *Player) TakeTurn(deck *ZombieDeck) (s dice.Sides, err error) {
+	dices_to_roll, err := deck.DealDice(3)
+	if err != nil {
+		return
+	}
 
-		if player_name != "human" {
-			time.Sleep(5 * 1e9)
-		}
+	sides := make([]dice.Side, 0)
+	for _, d := range dices_to_roll {
+		side := d.Roll()
+		sides = append(sides, side)
+		log.Printf("%s rolled: %s, %s\n", p.Name, d.Name, side.Name)
 
-		var answer int
-
-		switch player_name {
-		case "human":
-			answer = get_terminal_input()
-		case "greedy":
-			answer = GreedyAI(shots)
-		case "careful":
-			answer = CarefulAI(shots)
-		case "random":
-			answer = RandomAI()
-
-		}
-
-		if answer == 0 {
-			fmt.Printf("%s %d : \n", player_name, brains)
-			if player_name != "human" {
-				fmt.Println("turn ending...")
-				time.Sleep(3 * 1e9)
-			}
-			return brains, nil
+		if side.Name == "brain" {
+			p.playerState.current_score++
+		} else if side.Name == "shot" {
+			p.playerState.times_shot++
+		} else if side.Name == "walk" {
+			// Since walks get replayed we have to
+			// put them back in the deck
+			deck.AddDice(d)
+		} else {
+			return nil, errors.New(fmt.Sprintf("Unrecognized dice side has been rolled: %s", side.Name))
 		}
 	}
-	fmt.Println("The turn has ended")
-	return brains, nil
+
+	if p.playerState.times_shot >= 3 {
+		p.playerState.is_dead = true
+		log.Printf("%s has been shot three or more times \n", p.Name)
+	}
+
+	p.playerState.turns_taken++
+	return sides, nil
+}
+
+func initPlayerState() (ps playerState) {
+	return playerState{turns_taken: 0, current_score: 0, times_shot: 0, is_dead: false}
+}
+
+func shouldKeepGoing(p Player) bool {
+	if p.Name == "human" {
+		log.Println("Do you want to continue? Hit 1 to continue and 0 to stop")
+	}
+
+	if p.Name != "human" {
+		time.Sleep(5 * 1e9)
+	}
+
+	var answer int
+
+	switch p.Name {
+	case "human":
+		answer = get_terminal_input()
+	case "greedy":
+		answer = GreedyAI(p.playerState.times_shot)
+	case "careful":
+		answer = CarefulAI(p.playerState.times_shot)
+	case "random":
+		answer = RandomAI()
+
+	}
+
+	if answer == 0 {
+		if p.Name != "human" {
+			log.Println("turn ending...")
+			time.Sleep(3 * 1e9)
+		}
+		return false
+	}
+	return true
 }
 
 func PlayWithAI() {
-	player_total_score := 0
-	ai_total_score := 0
-	deck := InitZombieDeck()
-
 	ai_name := select_ai()
 
-	round_counter := 0
+	players := make([]Player, 2)
+	t1 := 0
+	t2 := 0
+	players[0] = Player{playerState: initPlayerState(), Name: "human", is_ai: false, total_score: &t1}
+	players[1] = Player{playerState: initPlayerState(), Name: ai_name, is_ai: true, total_score: &t2}
+
+	gameState, err := InitGameState(players)
+
+	if err != nil {
+		log.Printf("Error occured while initializing game state")
+	}
+
 	for {
-		round_counter++
-		deck.Shuffle()
-		player_score, err := players_turn(deck, "human")
-		if err != nil {
-			fmt.Println("Error Occurred on players turn")
-			return
-		}
-		player_total_score += player_score
+		for _, p := range gameState.Players {
+			gameState.ZombieDeck = InitZombieDeck()
+			gameState.ZombieDeck.Shuffle()
+		    gameState.round_number++
+			log.Printf("Player %s is taking turn; Players total score: %d", p.Name, *p.total_score)
+			for {
+				_, err := p.TakeTurn(&gameState.ZombieDeck)
 
-		fmt.Printf("Your total score is : %d\n", player_total_score)
+				if err != nil {
+					log.Printf("Error occured while player %s was taking turn")
+					break
+				}
 
-		deck.Shuffle()
-		ai_score, err_ai := players_turn(deck, ai_name)
-		if err_ai != nil {
-			fmt.Println("Error Occurred on ai turn")
-			return
-		}
+				log.Printf("Current score: %d; Times shot: %d", p.playerState.current_score, p.playerState.times_shot)
 
-		ai_total_score += ai_score
+				if p.playerState.is_dead {
+					log.Printf("Player %s has died! No points scored.", p.Name)
+					time.Sleep(3 * 1e9)
+					break
+				}
 
-		fmt.Printf("Round : %d\n", round_counter)
-		fmt.Printf("Your total score is : %d\n", player_total_score)
-		fmt.Printf("AI : %s total score is : %d\n", ai_name, ai_total_score)
-
-		if player_total_score >= 13 || ai_total_score >= 13 {
-			if player_total_score > ai_total_score {
-				fmt.Println("Congratulations You Won!")
-				return
-			} else if player_total_score < ai_total_score {
-				fmt.Printf("AI : %s won! Better Luck Next Time!\n", ai_name)
-				return
+				if !shouldKeepGoing(p) {
+					log.Printf("Player %s chose to stop, added %d to total score", p.Name, p.playerState.current_score)
+					*p.total_score += p.playerState.current_score
+					log.Printf("Player %s total score is now: %d", p.Name, *p.total_score)
+					p.playerState = initPlayerState()
+					break
+				}
 			}
+		}
+
+		//TO-DO: make this a method of GameState
+		//TO-DO: need to handle ties
+		max_score := 0
+		var player_with_max Player
+		for _, p := range gameState.Players {
+			if *p.total_score >= max_score {
+				max_score = *p.total_score
+				player_with_max = p
+			}
+		}
+
+		if max_score >= 13 {
+			log.Printf("Player %s won!", player_with_max.Name)
+			break
 		}
 	}
 }
