@@ -1,10 +1,11 @@
 package zombie_dice
 
-import ( "testing"
+import (
+	"testing"
 )
 
 func TestInitializeDeck(t *testing.T) {
-	deck := initialize_deck()
+	deck := InitZombieDeck()
 
 	expected_names := map[int]string{0: "green",
 		1:  "green",
@@ -20,11 +21,10 @@ func TestInitializeDeck(t *testing.T) {
 		11: "red",
 		12: "red"}
 
-	for ind, d := range deck.Dices {
+	for ind, d := range deck.Deck.Dices {
 		if d.Name != expected_names[ind] {
 			t.Errorf("Expected %d: %s, but got %s", ind, expected_names[ind], d.Name)
 		}
 	}
 
 }
-
