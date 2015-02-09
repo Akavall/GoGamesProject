@@ -14,11 +14,19 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
+//TO-DO: should probably define these to be configurable for each new game...
+const WINNING_SCORE = 5
+const DICE_TO_DEAL = 3
+const SHOTS_UNTIL_DEAD = 3
+
 type GameState struct {
 	Players
 	ZombieDeck
-	uuid         *uuid.UUID
-	round_number int
+	uuid        *uuid.UUID
+	player_turn int
+	winner      Player
+	game_over   bool
+	is_active   bool
 }
 
 type Players []Player
@@ -37,18 +45,52 @@ type playerState struct {
 	is_dead       bool
 }
 
+func (gs *GameState) EndTurn() {
+	next_player_turn := gs.player_turn + 1
+
+	if next_player_turn >= len(gs.Players) {
+		next_player_turn = 0
+		gs.endRound()
+	}
+
+	gs.player_turn = next_player_turn
+
+	deck := InitZombieDeck()
+	deck.Shuffle()
+	gs.ZombieDeck = deck
+}
+
+func (gs *GameState) endRound() {
+	//check scores
+	//TO-DO: need to handle ties
+	max_score := 0
+	var player_with_max Player
+	for _, p := range gs.Players {
+		if *p.total_score >= max_score {
+			max_score = *p.total_score
+			player_with_max = p
+		}
+	}
+
+	if max_score >= WINNING_SCORE {
+		gs.winner = player_with_max
+		gs.game_over = true
+	}
+}
+
 func InitGameState(players Players) (gs GameState, err error) {
 	deck := InitZombieDeck()
+	deck.Shuffle()
 	uuid, err := uuid.NewV4()
 	if err != nil {
 		return
 	}
 
-	return GameState{Players: players, ZombieDeck: deck, uuid: uuid, round_number: 0}, nil
+	return GameState{Players: players, ZombieDeck: deck, uuid: uuid, player_turn: 0, winner: Player{}, game_over: false, is_active: false}, nil
 }
 
 func (p *Player) TakeTurn(deck *ZombieDeck) (s dice.Sides, err error) {
-	dices_to_roll, err := deck.DealDice(3)
+	dices_to_roll, err := deck.DealDice(DICE_TO_DEAL)
 	if err != nil {
 		return
 	}
@@ -72,13 +114,12 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s dice.Sides, err error) {
 		}
 	}
 
-	if p.playerState.times_shot >= 3 {
+	if p.playerState.times_shot >= SHOTS_UNTIL_DEAD {
 		p.playerState.is_dead = true
-		log.Printf("%s has been shot three or more times \n", p.Name)
 	}
 
 	p.playerState.turns_taken++
-	return sides, nil
+	return sides, nil //TO-DO: need proper return here that significies dice color + side rolled
 }
 
 func initPlayerState() (ps playerState) {
@@ -86,12 +127,10 @@ func initPlayerState() (ps playerState) {
 }
 
 func shouldKeepGoing(p Player) bool {
-	if p.Name == "human" {
+	if !p.is_ai {
 		log.Println("Do you want to continue? Hit 1 to continue and 0 to stop")
-	}
-
-	if p.Name != "human" {
-		time.Sleep(5 * 1e9)
+	} else {
+		time.Sleep(2 * 1e9)
 	}
 
 	var answer int
@@ -109,9 +148,9 @@ func shouldKeepGoing(p Player) bool {
 	}
 
 	if answer == 0 {
-		if p.Name != "human" {
+		if p.is_ai {
 			log.Println("turn ending...")
-			time.Sleep(3 * 1e9)
+			time.Sleep(2 * 1e9)
 		}
 		return false
 	}
@@ -122,6 +161,7 @@ func PlayWithAI() {
 	ai_name := select_ai()
 
 	players := make([]Player, 2)
+
 	t1 := 0
 	t2 := 0
 	players[0] = Player{playerState: initPlayerState(), Name: "human", is_ai: false, total_score: &t1}
@@ -135,9 +175,6 @@ func PlayWithAI() {
 
 	for {
 		for _, p := range gameState.Players {
-			gameState.ZombieDeck = InitZombieDeck()
-			gameState.ZombieDeck.Shuffle()
-		    gameState.round_number++
 			log.Printf("Player %s is taking turn; Players total score: %d", p.Name, *p.total_score)
 			for {
 				_, err := p.TakeTurn(&gameState.ZombieDeck)
@@ -163,21 +200,11 @@ func PlayWithAI() {
 					break
 				}
 			}
+			gameState.EndTurn()
 		}
 
-		//TO-DO: make this a method of GameState
-		//TO-DO: need to handle ties
-		max_score := 0
-		var player_with_max Player
-		for _, p := range gameState.Players {
-			if *p.total_score >= max_score {
-				max_score = *p.total_score
-				player_with_max = p
-			}
-		}
-
-		if max_score >= 13 {
-			log.Printf("Player %s won!", player_with_max.Name)
+		if gameState.game_over == true {
+			log.Printf("Player %s won!", gameState.winner.Name)
 			break
 		}
 	}
@@ -207,7 +234,7 @@ back:
 	case 3:
 		return "random"
 	default:
-		fmt.Println("This is not a valid selction, please try again")
+		fmt.Println("This is not a valid selection, please try again")
 		goto back
 	}
 }
