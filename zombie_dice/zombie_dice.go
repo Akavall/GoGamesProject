@@ -15,7 +15,7 @@ import (
 )
 
 //TO-DO: should probably define these to be configurable for each new game...
-const WINNING_SCORE = 5
+const WINNING_SCORE = 13
 const DICE_TO_DEAL = 3
 const SHOTS_UNTIL_DEAD = 3
 
