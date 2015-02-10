@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/Akavall/GoGamesProject/dice"
-	"github.com/nu7hatch/gouuid"
 )
 
 //TO-DO: should probably define these to be configurable for each new game...
@@ -22,23 +21,22 @@ const SHOTS_UNTIL_DEAD = 3
 type GameState struct {
 	Players
 	ZombieDeck
-	uuid        *uuid.UUID
-	player_turn int
-	winner      Player
-	game_over   bool
-	is_active   bool
+	PlayerTurn int
+	Winner     Player
+	GameOver   bool
+	IsActive   bool
 }
 
 type Players []Player
 
 type Player struct {
-	playerState
-	Name        string
-	is_ai       bool
-	total_score *int
+	PlayerState
+	Name       string
+	IsAI       bool
+	TotalScore *int
 }
 
-type playerState struct {
+type PlayerState struct {
 	turns_taken   int
 	current_score int
 	times_shot    int
@@ -46,14 +44,14 @@ type playerState struct {
 }
 
 func (gs *GameState) EndTurn() {
-	next_player_turn := gs.player_turn + 1
+	next_player_turn := gs.PlayerTurn + 1
 
 	if next_player_turn >= len(gs.Players) {
 		next_player_turn = 0
 		gs.endRound()
 	}
 
-	gs.player_turn = next_player_turn
+	gs.PlayerTurn = next_player_turn
 
 	deck := InitZombieDeck()
 	deck.Shuffle()
@@ -66,27 +64,23 @@ func (gs *GameState) endRound() {
 	max_score := 0
 	var player_with_max Player
 	for _, p := range gs.Players {
-		if *p.total_score >= max_score {
-			max_score = *p.total_score
+		if *p.TotalScore >= max_score {
+			max_score = *p.TotalScore
 			player_with_max = p
 		}
 	}
 
 	if max_score >= WINNING_SCORE {
-		gs.winner = player_with_max
-		gs.game_over = true
+		gs.Winner = player_with_max
+		gs.GameOver = true
 	}
 }
 
 func InitGameState(players Players) (gs GameState, err error) {
 	deck := InitZombieDeck()
 	deck.Shuffle()
-	uuid, err := uuid.NewV4()
-	if err != nil {
-		return
-	}
 
-	return GameState{Players: players, ZombieDeck: deck, uuid: uuid, player_turn: 0, winner: Player{}, game_over: false, is_active: false}, nil
+	return GameState{Players: players, ZombieDeck: deck, PlayerTurn: 0, Winner: Player{}, GameOver: false, IsActive: false}, nil
 }
 
 func (p *Player) TakeTurn(deck *ZombieDeck) (s dice.Sides, err error) {
@@ -102,9 +96,9 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s dice.Sides, err error) {
 		log.Printf("%s rolled: %s, %s\n", p.Name, d.Name, side.Name)
 
 		if side.Name == "brain" {
-			p.playerState.current_score++
+			p.PlayerState.current_score++
 		} else if side.Name == "shot" {
-			p.playerState.times_shot++
+			p.PlayerState.times_shot++
 		} else if side.Name == "walk" {
 			// Since walks get replayed we have to
 			// put them back in the deck
@@ -114,20 +108,20 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s dice.Sides, err error) {
 		}
 	}
 
-	if p.playerState.times_shot >= SHOTS_UNTIL_DEAD {
-		p.playerState.is_dead = true
+	if p.PlayerState.times_shot >= SHOTS_UNTIL_DEAD {
+		p.PlayerState.is_dead = true
 	}
 
-	p.playerState.turns_taken++
+	p.PlayerState.turns_taken++
 	return sides, nil //TO-DO: need proper return here that significies dice color + side rolled
 }
 
-func initPlayerState() (ps playerState) {
-	return playerState{turns_taken: 0, current_score: 0, times_shot: 0, is_dead: false}
+func InitPlayerState() (ps PlayerState) {
+	return PlayerState{turns_taken: 0, current_score: 0, times_shot: 0, is_dead: false}
 }
 
 func shouldKeepGoing(p Player) bool {
-	if !p.is_ai {
+	if !p.IsAI {
 		log.Println("Do you want to continue? Hit 1 to continue and 0 to stop")
 	} else {
 		time.Sleep(2 * 1e9)
@@ -139,16 +133,16 @@ func shouldKeepGoing(p Player) bool {
 	case "human":
 		answer = get_terminal_input()
 	case "greedy":
-		answer = GreedyAI(p.playerState.times_shot)
+		answer = GreedyAI(p.PlayerState.times_shot)
 	case "careful":
-		answer = CarefulAI(p.playerState.times_shot)
+		answer = CarefulAI(p.PlayerState.times_shot)
 	case "random":
 		answer = RandomAI()
 
 	}
 
 	if answer == 0 {
-		if p.is_ai {
+		if p.IsAI {
 			log.Println("turn ending...")
 			time.Sleep(2 * 1e9)
 		}
@@ -164,8 +158,8 @@ func PlayWithAI() {
 
 	t1 := 0
 	t2 := 0
-	players[0] = Player{playerState: initPlayerState(), Name: "human", is_ai: false, total_score: &t1}
-	players[1] = Player{playerState: initPlayerState(), Name: ai_name, is_ai: true, total_score: &t2}
+	players[0] = Player{PlayerState: InitPlayerState(), Name: "human", IsAI: false, TotalScore: &t1}
+	players[1] = Player{PlayerState: InitPlayerState(), Name: ai_name, IsAI: true, TotalScore: &t2}
 
 	gameState, err := InitGameState(players)
 
@@ -175,7 +169,7 @@ func PlayWithAI() {
 
 	for {
 		for _, p := range gameState.Players {
-			log.Printf("Player %s is taking turn; Players total score: %d", p.Name, *p.total_score)
+			log.Printf("Player %s is taking turn; Players total score: %d", p.Name, *p.TotalScore)
 			for {
 				_, err := p.TakeTurn(&gameState.ZombieDeck)
 
@@ -184,27 +178,27 @@ func PlayWithAI() {
 					break
 				}
 
-				log.Printf("Current score: %d; Times shot: %d", p.playerState.current_score, p.playerState.times_shot)
+				log.Printf("Current score: %d; Times shot: %d", p.PlayerState.current_score, p.PlayerState.times_shot)
 
-				if p.playerState.is_dead {
+				if p.PlayerState.is_dead {
 					log.Printf("Player %s has died! No points scored.", p.Name)
 					time.Sleep(3 * 1e9)
 					break
 				}
 
 				if !shouldKeepGoing(p) {
-					log.Printf("Player %s chose to stop, added %d to total score", p.Name, p.playerState.current_score)
-					*p.total_score += p.playerState.current_score
-					log.Printf("Player %s total score is now: %d", p.Name, *p.total_score)
-					p.playerState = initPlayerState()
+					log.Printf("Player %s chose to stop, added %d to total score", p.Name, p.PlayerState.current_score)
+					*p.TotalScore += p.PlayerState.current_score
+					log.Printf("Player %s total score is now: %d", p.Name, *p.TotalScore)
+					p.PlayerState = InitPlayerState()
 					break
 				}
 			}
 			gameState.EndTurn()
 		}
 
-		if gameState.game_over == true {
-			log.Printf("Player %s won!", gameState.winner.Name)
+		if gameState.GameOver == true {
+			log.Printf("Player %s won!", gameState.Winner.Name)
 			break
 		}
 	}
