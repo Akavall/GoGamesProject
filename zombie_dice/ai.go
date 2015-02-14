@@ -25,8 +25,7 @@ func RandomAI() int {
 }
 
 func SimulationistAI(previous_shots, already_gained_brains, walks int, deck_left dice.Deck) int {
-	// This is a dumb simulationist it misses walk dices
-
+	
 	n_iterations := 10000
 	all_killed := 0
 	all_brains := 0
@@ -62,7 +61,7 @@ func simulate_one_roll(walk_dices *dice.Dices, deck_left *dice.Deck, previous_sh
 		if j < len(*walk_dices) {
 			side = (*walk_dices)[j].Roll()
 		} else {                        
-			side = deck_left.Dices[j].Roll()
+			side = deck_left.Dices[j - len(*walk_dices)].Roll()
 		}
 
 		if side.Name == "brain" {
