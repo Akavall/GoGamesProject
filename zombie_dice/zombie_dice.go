@@ -36,11 +36,12 @@ type Player struct {
 	TotalScore *int
 }
 
+//TO-DO: make these pointers
 type PlayerState struct {
-	turns_taken   int
-	current_score int
-	times_shot    int
-	is_dead       bool
+	TurnsTaken   int
+	CurrentScore int
+	TimesShot    int
+	IsDead       bool
 }
 
 func (gs *GameState) EndTurn() {
@@ -83,41 +84,47 @@ func InitGameState(players Players) (gs GameState, err error) {
 	return GameState{Players: players, ZombieDeck: deck, PlayerTurn: 0, Winner: Player{}, GameOver: false, IsActive: false}, nil
 }
 
-func (p *Player) TakeTurn(deck *ZombieDeck) (s dice.Sides, err error) {
+func (p *Player) TakeTurn(deck *ZombieDeck) (s string, err error) {
+	if p.PlayerState.IsDead == true {
+		return "", errors.New(fmt.Sprintf("Player %s is dead and cannot take more turns!", p.Name))
+	}
+
 	dices_to_roll, err := deck.DealDice(DICE_TO_DEAL)
 	if err != nil {
 		return
 	}
 
+	turn_result := ""
 	sides := make([]dice.Side, 0)
 	for _, d := range dices_to_roll {
 		side := d.Roll()
 		sides = append(sides, side)
+		turn_result += d.Name + "," + side.Name + ";" //poor way to do this, but will do for now
 		log.Printf("%s rolled: %s, %s\n", p.Name, d.Name, side.Name)
 
 		if side.Name == "brain" {
-			p.PlayerState.current_score++
+			p.PlayerState.CurrentScore++
 		} else if side.Name == "shot" {
-			p.PlayerState.times_shot++
+			p.PlayerState.TimesShot++
 		} else if side.Name == "walk" {
 			// Since walks get replayed we have to
 			// put them back in the deck
 			deck.AddDice(d)
 		} else {
-			return nil, errors.New(fmt.Sprintf("Unrecognized dice side has been rolled: %s", side.Name))
+			return turn_result, errors.New(fmt.Sprintf("Unrecognized dice side has been rolled: %s", side.Name))
 		}
 	}
 
-	if p.PlayerState.times_shot >= SHOTS_UNTIL_DEAD {
-		p.PlayerState.is_dead = true
+	if p.PlayerState.TimesShot >= SHOTS_UNTIL_DEAD {
+		p.PlayerState.IsDead = true
 	}
 
-	p.PlayerState.turns_taken++
-	return sides, nil //TO-DO: need proper return here that significies dice color + side rolled
+	p.PlayerState.TurnsTaken++
+	return turn_result, nil //TO-DO: need proper return here that significies dice color + side rolled
 }
 
 func InitPlayerState() (ps PlayerState) {
-	return PlayerState{turns_taken: 0, current_score: 0, times_shot: 0, is_dead: false}
+	return PlayerState{TurnsTaken: 0, CurrentScore: 0, TimesShot: 0, IsDead: false}
 }
 
 func shouldKeepGoing(p Player) bool {
@@ -133,9 +140,9 @@ func shouldKeepGoing(p Player) bool {
 	case "human":
 		answer = get_terminal_input()
 	case "greedy":
-		answer = GreedyAI(p.PlayerState.times_shot)
+		answer = GreedyAI(p.PlayerState.TimesShot)
 	case "careful":
-		answer = CarefulAI(p.PlayerState.times_shot)
+		answer = CarefulAI(p.PlayerState.TimesShot)
 	case "random":
 		answer = RandomAI()
 
@@ -178,17 +185,17 @@ func PlayWithAI() {
 					break
 				}
 
-				log.Printf("Current score: %d; Times shot: %d", p.PlayerState.current_score, p.PlayerState.times_shot)
+				log.Printf("Current score: %d; Times shot: %d", p.PlayerState.CurrentScore, p.PlayerState.TimesShot)
 
-				if p.PlayerState.is_dead {
+				if p.PlayerState.IsDead {
 					log.Printf("Player %s has died! No points scored.", p.Name)
 					time.Sleep(3 * 1e9)
 					break
 				}
 
 				if !shouldKeepGoing(p) {
-					log.Printf("Player %s chose to stop, added %d to total score", p.Name, p.PlayerState.current_score)
-					*p.TotalScore += p.PlayerState.current_score
+					log.Printf("Player %s chose to stop, added %d to total score", p.Name, p.PlayerState.CurrentScore)
+					*p.TotalScore += p.PlayerState.CurrentScore
 					log.Printf("Player %s total score is now: %d", p.Name, *p.TotalScore)
 					p.PlayerState = InitPlayerState()
 					break

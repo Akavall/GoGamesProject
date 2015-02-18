@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -13,8 +14,10 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
+const MAX_ZOMBIE_DICE_GAMES = 70
+
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
-var zombie_games = make(map[*uuid.UUID]zombie_dice.GameState)
+var zombie_games = make(map[string]zombie_dice.GameState)
 
 func zombie_game(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/html")
@@ -36,7 +39,6 @@ func index(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
-//TO-DO: Can start an unlimited number of games!
 func start_zombie_dice(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/plain")
 
@@ -103,10 +105,90 @@ func start_zombie_dice(response http.ResponseWriter, request *http.Request) {
 	}
 
 	game_state, err := zombie_dice.InitGameState(players)
-	zombie_games[uuid] = game_state
-    log.Printf("Successfully started new Zombie Dice game with ID: %s; Number of running games: %d", uuid.String(), len(zombie_games))
+	uuid_string := uuid.String()
 
-	fmt.Fprintf(response, "%s", uuid.String())
+	if len(zombie_games) < MAX_ZOMBIE_DICE_GAMES {
+		zombie_games[uuid_string] = game_state
+		log.Printf("Successfully started new Zombie Dice game with ID: %s; Number of running games: %d", uuid_string, len(zombie_games))
+	} else {
+		error_message := fmt.Sprintf("Maximum number of zombie dice games (%d) reached!", MAX_ZOMBIE_DICE_GAMES)
+		log.Printf(error_message)
+		http.Error(response, error_message, http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprintf(response, "%s", uuid_string)
+}
+
+func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("Content-type", "text/plain")
+
+	err := request.ParseForm()
+	if err != nil {
+		log.Fatal(response, fmt.Sprintf("error parsing url %v", err), 500)
+	}
+
+	uuid, err := parse_input(request, "uuid")
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	player_name, err := parse_input(request, "player")
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	game_state, ok := zombie_games[uuid]
+
+	if !ok {
+		http.Error(response, fmt.Sprintf("Game with id %s not found!", uuid), http.StatusBadRequest)
+		return
+	} else {
+		log.Printf("Grabbed game state with id: %s", uuid)
+	}
+
+	if game_state.IsActive {
+		http.Error(response, fmt.Sprintf("Game state with id %s is already active!", uuid), http.StatusBadRequest)
+		return
+	} else {
+		game_state.IsActive = true
+	}
+
+	player_index := game_state.PlayerTurn
+	active_player := game_state.Players[player_index]
+
+	if player_name != active_player.Name {
+		http.Error(response, fmt.Sprintf("%s is currently taking a turn, not %s!", active_player.Name, player_name), http.StatusBadRequest)
+		game_state.IsActive = false
+		return
+	}
+
+	turn_result, err := active_player.TakeTurn(&game_state.ZombieDeck)
+
+	if err != nil {
+		http.Error(response, fmt.Sprintf("Error occured while player %s was taking turn: %s", active_player.Name, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	game_state.IsActive = false
+	//TO-DO: should eventually return the Player and PlayerState structs as JSON
+	fmt.Fprintf(response, "%s|%d|%d", turn_result, active_player.PlayerState.CurrentScore, active_player.PlayerState.TimesShot)
+}
+
+func parse_input(request *http.Request, field string) (s string, err error) {
+	input_array := request.Form[field]
+
+	parsed_input := ""
+	if len(input_array) == 1 {
+		parsed_input = input_array[0]
+	} else {
+		error_message := fmt.Sprintf("Bad input on %s! Received %d inputs, expected only 1", field, len(input_array))
+		log.Printf(error_message)
+		return "", errors.New(error_message)
+	}
+	return parsed_input, nil
 }
 
 func four_dice_roll(response http.ResponseWriter, request *http.Request) {
@@ -166,6 +248,7 @@ func main() {
 	mux.HandleFunc("/", index)
 	mux.HandleFunc("/zombie_dice", zombie_game)
 	mux.HandleFunc("/zombie_dice/start_game", start_zombie_dice)
+	mux.HandleFunc("/zombie_dice/take_turn", take_zombie_dice_turn)
 	mux.HandleFunc("/four_dice_roll", four_dice_roll)
 	mux.HandleFunc("/roll_dice", roll_dice)
 	log.Printf("Started dumb Dice web server! Try it on http://localhost:8000")
