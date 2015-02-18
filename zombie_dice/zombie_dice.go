@@ -56,6 +56,7 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 
 	brains := 0
 	shots := 0
+	walks := 0
 
 	for {
 		if len(deck.Dices) < 3 {
@@ -80,6 +81,7 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 				// Since walks get replayed we have to
 				// put them back in the deck
 				deck.AddDice(d)
+				walks++
 			}
 		}
 
@@ -109,6 +111,8 @@ func players_turn(deck dice.Deck, player_name string) (int, error) {
 			answer = CarefulAI(shots)
 		case "random":
 			answer = RandomAI()
+		case "simulationist":
+			answer = SimulationistAI(shots, brains, walks, deck)
 
 		}
 
@@ -184,6 +188,7 @@ back:
 	fmt.Printf("Greedy : press %d\n", 1)
 	fmt.Printf("Careful : press %d\n", 2)
 	fmt.Printf("Random : press %d\n", 3)
+	fmt.Printf("Simulationist : press %d\n",4)
 
 	answer := get_terminal_input()
 	switch answer {
@@ -193,6 +198,8 @@ back:
 		return "careful"
 	case 3:
 		return "random"
+	case 4: 
+		return "simulationist"
 	default:
 		fmt.Println("This is not a valid selction, please try again")
 		goto back
