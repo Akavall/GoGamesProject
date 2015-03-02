@@ -30,7 +30,7 @@ type GameState struct {
 type Players []Player
 
 type Player struct {
-	PlayerState
+	*PlayerState
 	Name       string
 	IsAI       bool
 	TotalScore *int
@@ -75,6 +75,13 @@ func (gs *GameState) endRound() {
 		gs.Winner = player_with_max
 		gs.GameOver = true
 	}
+}
+
+func (ps *PlayerState) Reset() {
+	ps.TurnsTaken = 0
+	ps.CurrentScore = 0
+	ps.TimesShot = 0
+	ps.IsDead = false
 }
 
 func InitGameState(players Players) (gs GameState, err error) {
@@ -123,8 +130,8 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s string, err error) {
 	return turn_result, nil //TO-DO: need proper return here that significies dice color + side rolled
 }
 
-func InitPlayerState() (ps PlayerState) {
-	return PlayerState{TurnsTaken: 0, CurrentScore: 0, TimesShot: 0, IsDead: false}
+func InitPlayerState() *PlayerState {
+	return &PlayerState{TurnsTaken: 0, CurrentScore: 0, TimesShot: 0, IsDead: false}
 }
 
 func shouldKeepGoing(p Player) bool {
@@ -175,13 +182,16 @@ func PlayWithAI() {
 	}
 
 	for {
-		for _, p := range gameState.Players {
+		//Using explicit for loop here because need to change state
+		//range returns a copy, so state is lost after each iteration
+		for i := 0; i < len(gameState.Players); i++ {
+			p := gameState.Players[i]
 			log.Printf("Player %s is taking turn; Players total score: %d", p.Name, *p.TotalScore)
 			for {
 				_, err := p.TakeTurn(&gameState.ZombieDeck)
 
 				if err != nil {
-					log.Printf("Error occured while player %s was taking turn")
+					log.Printf("Error occured while player %s was taking turn: %s", p.Name, err.Error())
 					break
 				}
 
@@ -189,6 +199,7 @@ func PlayWithAI() {
 
 				if p.PlayerState.IsDead {
 					log.Printf("Player %s has died! No points scored.", p.Name)
+					p.PlayerState.Reset()
 					time.Sleep(3 * 1e9)
 					break
 				}
@@ -197,7 +208,9 @@ func PlayWithAI() {
 					log.Printf("Player %s chose to stop, added %d to total score", p.Name, p.PlayerState.CurrentScore)
 					*p.TotalScore += p.PlayerState.CurrentScore
 					log.Printf("Player %s total score is now: %d", p.Name, *p.TotalScore)
-					p.PlayerState = InitPlayerState()
+
+					//p.PlayerState = InitPlayerState()
+					p.PlayerState.Reset()
 					break
 				}
 			}

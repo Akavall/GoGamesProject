@@ -14,7 +14,7 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
-const MAX_ZOMBIE_DICE_GAMES = 70
+const MAX_ZOMBIE_DICE_GAMES = 60
 
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
 var zombie_games = make(map[string]zombie_dice.GameState)
