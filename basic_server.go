@@ -17,7 +17,7 @@ import (
 const MAX_ZOMBIE_DICE_GAMES = 60
 
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
-var zombie_games = make(map[string]zombie_dice.GameState)
+var zombie_games = make(map[string]*zombie_dice.GameState)
 
 func zombie_game(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/html")
@@ -108,7 +108,7 @@ func start_zombie_dice(response http.ResponseWriter, request *http.Request) {
 	uuid_string := uuid.String()
 
 	if len(zombie_games) < MAX_ZOMBIE_DICE_GAMES {
-		zombie_games[uuid_string] = game_state
+		zombie_games[uuid_string] = &game_state
 		log.Printf("Successfully started new Zombie Dice game with ID: %s; Number of running games: %d", uuid_string, len(zombie_games))
 	} else {
 		error_message := fmt.Sprintf("Maximum number of zombie dice games (%d) reached!", MAX_ZOMBIE_DICE_GAMES)
@@ -140,6 +140,18 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		return
 	}
 
+	continue_string, err := parse_input(request, "continue")
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	continue_game, err := strconv.ParseBool(continue_string)
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	game_state, ok := zombie_games[uuid]
 
 	if !ok {
@@ -165,16 +177,38 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	turn_result, err := active_player.TakeTurn(&game_state.ZombieDeck)
+	if active_player.IsAI {
+		if zombie_dice.RandomAI() == 0 {
+			continue_game = false
+		}
+	}
 
-	if err != nil {
-		http.Error(response, fmt.Sprintf("Error occured while player %s was taking turn: %s", active_player.Name, err.Error()), http.StatusBadRequest)
-		return
+	turn_result := "end_turn"
+	if continue_game {
+		turn_result, err = active_player.TakeTurn(&game_state.ZombieDeck)
+		if err != nil {
+			http.Error(response, fmt.Sprintf("Error occured while player %s was taking turn: %s", active_player.Name, err.Error()), http.StatusBadRequest)
+			return
+		}
+	} else {
+		active_player.PlayerState.Reset()
+		game_state.EndTurn()
+	}
+
+	//TO-DO: should eventually return the Player and PlayerState structs as JSON
+	if game_state.GameOver {
+		fmt.Fprintf(response, "won:%s", game_state.Winner.Name)
+		delete(zombie_games, uuid)
+	} else {
+		fmt.Fprintf(response, "%s|%d|%d|%d|%t", turn_result, active_player.PlayerState.CurrentScore, active_player.PlayerState.TimesShot, *active_player.TotalScore, active_player.PlayerState.IsDead)
+	}
+
+	if active_player.PlayerState.IsDead {
+		active_player.PlayerState.Reset()
+		game_state.EndTurn()
 	}
 
 	game_state.IsActive = false
-	//TO-DO: should eventually return the Player and PlayerState structs as JSON
-	fmt.Fprintf(response, "%s|%d|%d", turn_result, active_player.PlayerState.CurrentScore, active_player.PlayerState.TimesShot)
 }
 
 func parse_input(request *http.Request, field string) (s string, err error) {
