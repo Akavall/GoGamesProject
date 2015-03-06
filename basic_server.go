@@ -191,6 +191,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 			return
 		}
 	} else {
+		*active_player.TotalScore += active_player.PlayerState.CurrentScore
 		active_player.PlayerState.Reset()
 		game_state.EndTurn()
 	}
