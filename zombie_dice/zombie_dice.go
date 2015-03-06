@@ -36,11 +36,12 @@ type Player struct {
 	TotalScore *int
 }
 
-//TO-DO: make these pointers
 type PlayerState struct {
 	TurnsTaken   int
 	CurrentScore int
 	TimesShot    int
+	BrainsRolled int
+	WalksTaken   int
 	IsDead       bool
 }
 
@@ -111,12 +112,14 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s string, err error) {
 
 		if side.Name == "brain" {
 			p.PlayerState.CurrentScore++
+			p.PlayerState.BrainsRolled++
 		} else if side.Name == "shot" {
 			p.PlayerState.TimesShot++
 		} else if side.Name == "walk" {
 			// Since walks get replayed we have to
 			// put them back in the deck
 			deck.AddDice(d)
+			p.PlayerState.WalksTaken++
 		} else {
 			return turn_result, errors.New(fmt.Sprintf("Unrecognized dice side has been rolled: %s", side.Name))
 		}
@@ -134,7 +137,7 @@ func InitPlayerState() *PlayerState {
 	return &PlayerState{TurnsTaken: 0, CurrentScore: 0, TimesShot: 0, IsDead: false}
 }
 
-func shouldKeepGoing(p Player) bool {
+func shouldKeepGoing(p Player, deck *ZombieDeck) bool {
 	if !p.IsAI {
 		log.Println("Do you want to continue? Hit 1 to continue and 0 to stop")
 	} else {
@@ -152,7 +155,8 @@ func shouldKeepGoing(p Player) bool {
 		answer = CarefulAI(p.PlayerState.TimesShot)
 	case "random":
 		answer = RandomAI()
-
+	case "simulationist":
+		answer = SimulationistAI(p.PlayerState.TimesShot, p.PlayerState.BrainsRolled, p.PlayerState.WalksTaken, deck)
 	}
 
 	if answer == 0 {
@@ -204,7 +208,7 @@ func PlayWithAI() {
 					break
 				}
 
-				if !shouldKeepGoing(p) {
+				if !shouldKeepGoing(p, &gameState.ZombieDeck) {
 					log.Printf("Player %s chose to stop, added %d to total score", p.Name, p.PlayerState.CurrentScore)
 					*p.TotalScore += p.PlayerState.CurrentScore
 					log.Printf("Player %s total score is now: %d", p.Name, *p.TotalScore)
@@ -238,6 +242,7 @@ back:
 	fmt.Printf("Greedy : press %d\n", 1)
 	fmt.Printf("Careful : press %d\n", 2)
 	fmt.Printf("Random : press %d\n", 3)
+	fmt.Printf("Simulationist : press %d\n", 4)
 
 	answer := get_terminal_input()
 	switch answer {
@@ -247,6 +252,8 @@ back:
 		return "careful"
 	case 3:
 		return "random"
+	case 4:
+		return "simulationist"
 	default:
 		fmt.Println("This is not a valid selection, please try again")
 		goto back

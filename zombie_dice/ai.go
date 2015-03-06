@@ -1,6 +1,7 @@
 package zombie_dice
 
 import (
+	"fmt"
 	"github.com/Akavall/GoGamesProject/dice"
 )
 
@@ -21,4 +22,57 @@ func CarefulAI(shots int) int {
 func RandomAI() int {
 	two_sided_dice := dice.InitDefaultDice(2)
 	return two_sided_dice.Roll().Numerical_value - 1
+}
+
+func SimulationistAI(previous_shots, already_gained_brains, walks int, deck_left *ZombieDeck) int {
+
+	n_iterations := 10000
+	all_killed := 0
+	all_brains := 0
+	walk_dices, err := deck_left.DealDice(walks)
+	if err != nil {
+		fmt.Println(err)
+	}
+	for i := 0; i < n_iterations; i++ {
+		deck_left.Shuffle()
+
+		n_killed, n_brains := simulate_one_roll(&walk_dices, deck_left, previous_shots)
+		all_killed += n_killed
+		all_brains += n_brains
+
+	}
+
+	fmt.Println("all_brains", all_brains)
+	fmt.Println("to lose", all_killed*already_gained_brains)
+
+	if all_brains > all_killed*already_gained_brains {
+		return 1
+	} else {
+		return 0
+	}
+
+}
+
+func simulate_one_roll(walk_dices *dice.Dices, deck_left *ZombieDeck, previous_shots int) (int, int) {
+	n_inner_shots := 0
+	n_inner_brains := 0
+	for j := 0; j < 3; j++ {
+		var side dice.Side
+		if j < len(*walk_dices) {
+			side = (*walk_dices)[j].Roll()
+		} else {
+			side = deck_left.Deck.Dices[j-len(*walk_dices)].Roll()
+		}
+
+		if side.Name == "brain" {
+			n_inner_brains++
+		} else if side.Name == "shot" {
+			n_inner_shots++
+			if (n_inner_shots + previous_shots) >= 3 {
+				return 1, 0
+			}
+		}
+	}
+	return 0, n_inner_brains
+
 }
