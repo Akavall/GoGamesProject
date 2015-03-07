@@ -1,0 +1,54 @@
+<html lang="en">
+<head>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"> </script>
+<title>Zombie Dice</title>
+</head>
+<body onload="document.getElementById('start_game').disabled = false">
+<h1>Play Zombie Dice!</h1>
+
+<div id="dice_roll">
+0
+</div>
+
+<div id="preset">
+<input type="button" id="start_game" onclick="startGame()" value="Start Game" />
+
+<input type="button" id="take_turn" onclick="takeTurn()" value="Take Turn" />
+
+<input type="button" id="stop_turn" onclick="stopTurn()" value="Stop Turn" />
+
+<input type="button" id="ai_turn" onclick="aiTurn()" value="AI Turn" />
+</div>
+
+<script type="text/javascript">
+function startGame() {
+    $.post("http://localhost:8000/zombie_dice/start_game?num_players=2&player1=Andrew&player1_ai=false&player2=random&player2_ai=true", "", function(data, status) {
+                window.game_state_id = data;
+                document.getElementById("start_game").disabled = true;
+            });
+}
+
+function takeTurn() {
+     $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=Andrew&continue=true", "", function(data, status) {
+                parseTurnData(data)
+            });
+}
+
+function stopTurn() {
+    $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=Andrew&continue=false", "", function(data, status) {
+            });
+}
+
+function aiTurn() {
+     $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=random&continue=true", "", function(data, status) {
+                parseTurnData(data)
+            });
+}
+
+function parseTurnData(data) {
+    document.getElementById("dice_roll").innerHTML = data
+}
+</script>
+
+</body>
+</html>

@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	
+
 	zombie_dice.PlayWithAI()
 
 	//my_dice := dice.Init

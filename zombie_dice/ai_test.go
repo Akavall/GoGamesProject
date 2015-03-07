@@ -1,10 +1,9 @@
 package zombie_dice
 
 import (
-	"testing"
 	"github.com/Akavall/GoGamesProject/dice"
+	"testing"
 )
-
 
 func make_green_dice() dice.Dice {
 
@@ -60,7 +59,7 @@ func TestSimulateOneRoll_Walks(t *testing.T) {
 	walk_dices_2[1] = make_red_dice()
 	walk_dices_2[2] = make_red_dice()
 
-	deck_left := dice.Deck{Dices: make(dice.Dices, 0)}
+	deck_left := &ZombieDeck{Deck: dice.Deck{Dices: make(dice.Dices, 0)}}
 
 	killed_1 := 0
 	killed_2 := 0
@@ -69,8 +68,8 @@ func TestSimulateOneRoll_Walks(t *testing.T) {
 
 	for i := 0; i < 1000; i++ {
 
-		k_1, b_1 := simulate_one_roll(&walk_dices_1, &deck_left, 0)
-		k_2, b_2 := simulate_one_roll(&walk_dices_2, &deck_left, 0)
+		k_1, b_1 := simulate_one_roll(&walk_dices_1, deck_left, 0)
+		k_2, b_2 := simulate_one_roll(&walk_dices_2, deck_left, 0)
 
 		killed_1 += k_1
 		killed_2 += k_2
@@ -94,12 +93,12 @@ func TestSimulateOneRoll_DeckLeft(t *testing.T) {
 	walk_dices_1 := make(dice.Dices, 0)
 	walk_dices_2 := make(dice.Dices, 0)
 
-	deck_left_1 := dice.Deck{Dices: make(dice.Dices, 0)}
+	deck_left_1 := &ZombieDeck{Deck: dice.Deck{Dices: make(dice.Dices, 0)}}
 	deck_left_1.AddDice(make_green_dice())
 	deck_left_1.AddDice(make_green_dice())
 	deck_left_1.AddDice(make_green_dice())
 
-	deck_left_2 := dice.Deck{Dices: make(dice.Dices, 0)}
+	deck_left_2 := &ZombieDeck{Deck: dice.Deck{Dices: make(dice.Dices, 0)}}
 	deck_left_2.AddDice(make_red_dice())
 	deck_left_2.AddDice(make_red_dice())
 	deck_left_2.AddDice(make_red_dice())
@@ -111,8 +110,8 @@ func TestSimulateOneRoll_DeckLeft(t *testing.T) {
 
 	for i := 0; i < 1000; i++ {
 
-		k_1, b_1 := simulate_one_roll(&walk_dices_1, &deck_left_1, 0)
-		k_2, b_2 := simulate_one_roll(&walk_dices_2, &deck_left_2, 0)
+		k_1, b_1 := simulate_one_roll(&walk_dices_1, deck_left_1, 0)
+		k_2, b_2 := simulate_one_roll(&walk_dices_2, deck_left_2, 0)
 
 		killed_1 += k_1
 		killed_2 += k_2
@@ -136,14 +135,14 @@ func TestSimulateOneRoll_Walk_And_DeckLeft(t *testing.T) {
 	walk_dices_2 := make(dice.Dices, 1)
 	walk_dices_2[0] = make_green_dice()
 
-	deck_left_1 := dice.Deck{Dices: make(dice.Dices, 0)}
+	deck_left_1 := &ZombieDeck{Deck: dice.Deck{Dices: make(dice.Dices, 0)}}
 	deck_left_1.AddDice(make_green_dice())
 	deck_left_1.AddDice(make_green_dice())
-	
-	deck_left_2 := dice.Deck{Dices: make(dice.Dices, 0)}
+
+	deck_left_2 := &ZombieDeck{Deck: dice.Deck{Dices: make(dice.Dices, 0)}}
 	deck_left_2.AddDice(make_red_dice())
 	deck_left_2.AddDice(make_red_dice())
-	
+
 	killed_1 := 0
 	killed_2 := 0
 	brains_1 := 0
@@ -151,8 +150,8 @@ func TestSimulateOneRoll_Walk_And_DeckLeft(t *testing.T) {
 
 	for i := 0; i < 1000; i++ {
 
-		k_1, b_1 := simulate_one_roll(&walk_dices_1, &deck_left_1, 0)
-		k_2, b_2 := simulate_one_roll(&walk_dices_2, &deck_left_2, 0)
+		k_1, b_1 := simulate_one_roll(&walk_dices_1, deck_left_1, 0)
+		k_2, b_2 := simulate_one_roll(&walk_dices_2, deck_left_2, 0)
 
 		killed_1 += k_1
 		killed_2 += k_2
@@ -168,5 +167,3 @@ func TestSimulateOneRoll_Walk_And_DeckLeft(t *testing.T) {
 		t.Errorf("Expected greed dice deck to yield more kills than red dice deck")
 	}
 }
-
-
