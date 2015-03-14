@@ -6,8 +6,6 @@ import (
 	"github.com/Akavall/GoGamesProject/dice_war"
 )
 
-// +build main1
-
 func main() {
 	dice_war.DiceWarForTerminal()
 }
