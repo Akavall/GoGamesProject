@@ -10,6 +10,11 @@
 0
 </div>
 
+<div id="silly">
+3
+</div>
+
+
 <div id="preset">
 <input type="button" id="start_game" onclick="startGame()" value="Start Game" />
 
@@ -46,7 +51,16 @@ function aiTurn() {
 }
 
 function parseTurnData(data) {
-    document.getElementById("dice_roll").innerHTML = data
+    var silly = '{"silly" : "vat", "hat": "bat"}';
+
+    temp = JSON.parse(data)
+   
+    document.getElementById("dice_roll").innerHTML = temp["bee"];
+    document.getElementById("silly").innerHTML = silly;
+
+    //document.getElementById("dice_roll").innerHTML = JSON.stringify(JSON.parse(silly), null, 2);
+    // document.getElementById("dice_roll").innerHTML = silly;
+    
 }
 </script>
 

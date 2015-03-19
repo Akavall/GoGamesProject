@@ -140,6 +140,8 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		return
 	}
 
+	log.Print("PLAYERS NAME : ", player_name)
+
 	continue_string, err := parse_input(request, "continue")
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusBadRequest)
@@ -153,6 +155,13 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	}
 
 	game_state, ok := zombie_games[uuid]
+
+	log.Print("GAME_STATE : ", game_state.GameOver)
+	log.Print("PLAYER 1 : ", game_state.Players[0].Name)
+	log.Print("TOTAL SCORE : ", *game_state.Players[0].TotalScore)
+
+	log.Print("PLAYER 2 : ", game_state.Players[1].Name)
+	log.Print("TOTAL SCORE : ", *game_state.Players[1].TotalScore)
 
 	if !ok {
 		http.Error(response, fmt.Sprintf("Game with id %s not found!", uuid), http.StatusBadRequest)
@@ -201,7 +210,13 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		fmt.Fprintf(response, "won:%s", game_state.Winner.Name)
 		delete(zombie_games, uuid)
 	} else {
-		fmt.Fprintf(response, "%s|%d|%d|%d|%t", turn_result, active_player.PlayerState.CurrentScore, active_player.PlayerState.TimesShot, *active_player.TotalScore, active_player.PlayerState.IsDead)
+		//fmt.Fprintf(response, "%s|round score : %d|times shot : %d|total score : %d|is dead : %t", turn_result, active_player.PlayerState.CurrentScore, active_player.PlayerState.TimesShot, *active_player.TotalScore, active_player.PlayerState.IsDead)
+
+		silly := []byte (`{"bee" : "hive", "river" : "beast"}`)
+		fmt.Fprintf(response, string(silly))
+
+		fmt.Println(turn_result)
+
 	}
 
 	if active_player.PlayerState.IsDead {
