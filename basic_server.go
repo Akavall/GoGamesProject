@@ -18,8 +18,11 @@ import (
 const MAX_ZOMBIE_DICE_GAMES = 60
 
 type PlayerTurnResult struct {
-	turn_result [3][2]string
-	player zombie_dice.Player
+	TurnResult [3][2]string
+	RoundScore int
+	TimesShot int
+	TotalScore int
+	IsDead bool
 }
 
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
@@ -220,8 +223,12 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 
 		//silly := []byte (`{"bee" : "hive", "river" : "beast", "horse" : [1,2,55]}`)
 
-		player_turn_result := PlayerTurnResult{turn_result: turn_result, player: active_player}
-
+		player_turn_result := PlayerTurnResult{TurnResult: turn_result, 
+	                RoundScore: active_player.PlayerState.CurrentScore,
+			TimesShot: active_player.PlayerState.TimesShot,
+			TotalScore: *active_player.TotalScore,
+			IsDead: active_player.PlayerState.IsDead}
+		
 		fmt.Println("Player Turn Result")
 		fmt.Println(player_turn_result)
 

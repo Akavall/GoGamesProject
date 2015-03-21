@@ -7,15 +7,23 @@
 <h1>Play Zombie Dice!</h1>
 
 <div id="dice_roll">
-<font color="red"> 0 </font>
+0
 </div>
 
-<div id="silly">
-3
+<div id="TimesShot">
+0
 </div>
 
-<div id="slot3">
-5
+<div id="RoundScore">
+0
+</div>
+
+<div id="IsDead">
+0
+</div>
+
+<div id="TotalScore">
+0
 </div>
 
 
@@ -59,18 +67,29 @@ function parseTurnData(data) {
 
     player_turn_result = JSON.parse(data)
 
-    //turn_result = player_turn_result["turn_result"]
+    turn_result = player_turn_result["TurnResult"]
 
-    //var roll_1 = turn_result[0][1].fontcolor(turn_result[0][0]);
-    //var roll_2 = turn_result[1][1].fontcolor(turn_result[1][0]);
-    //var roll_3 = turn_result[2][1].fontcolor(turn_result[2][0]);
+    var roll_1 = turn_result[0][1].fontcolor(turn_result[0][0]);
+    var roll_2 = turn_result[1][1].fontcolor(turn_result[1][0]);
+    var roll_3 = turn_result[2][1].fontcolor(turn_result[2][0]);
 
-    //turn_result_string = [roll_1, roll_2, roll_2].join("\t");
+    turn_result_string = [roll_1, roll_2, roll_2].join("\t");
 
-   
-    document.getElementById("dice_roll").innerHTML = player_turn_result;
-    document.getElementById("silly").innerHTML = "temp1";
-    document.getElementById("slot3").innerHTML = "temp2";
+    temp = '{"TurnResult":[["yellow","walk"],["green","brain"],["green","brain"]],"RoundScore":2,"TimesShot":0,"TotalScore":0,"IsDead":false}';
+
+    temp_2 = '[["yellow","walk"],["green","brain"],["green","brain"]]';
+    temp_3 = '{"RoundScore": "a"}';
+
+
+    var my_map = {};
+    my_map["key1"] = "value1";
+    my_map["key2"] = "value2";
+
+    document.getElementById("dice_roll").innerHTML = turn_result_string;
+    document.getElementById("TimesShot").innerHTML = "Times Shot : " + player_turn_result["TimesShot"];
+    document.getElementById("RoundScore").innerHTML = "Round Score : " + player_turn_result["RoundScore"];
+    document.getElementById("IsDead").innerHTML = "Is Dead? : " + player_turn_result["IsDead"];
+    document.getElementById("TotalScore").innerHTML = "Total Score : " + player_turn_result["TotalScore"];
 
     //document.getElementById("dice_roll").innerHTML = JSON.stringify(JSON.parse(silly), null, 2);
     // document.getElementById("dice_roll").innerHTML = silly;
