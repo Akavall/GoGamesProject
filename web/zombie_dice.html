@@ -26,6 +26,10 @@
 0
 </div>
 
+<div id="Winner">
+0
+</div>
+
 
 <div id="preset">
 <input type="button" id="start_game" onclick="startGame()" value="Start Game" />
@@ -63,8 +67,6 @@ function aiTurn() {
 }
 
 function parseTurnData(data) {
-    var silly = '{"silly" : "vat", "hat": "bat"}';
-
     player_turn_result = JSON.parse(data)
 
     turn_result = player_turn_result["TurnResult"]
@@ -90,10 +92,7 @@ function parseTurnData(data) {
     document.getElementById("RoundScore").innerHTML = "Round Score : " + player_turn_result["RoundScore"];
     document.getElementById("IsDead").innerHTML = "Is Dead? : " + player_turn_result["IsDead"];
     document.getElementById("TotalScore").innerHTML = "Total Score : " + player_turn_result["TotalScore"];
-
-    //document.getElementById("dice_roll").innerHTML = JSON.stringify(JSON.parse(silly), null, 2);
-    // document.getElementById("dice_roll").innerHTML = silly;
-    
+    document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];    
 }
 </script>
 

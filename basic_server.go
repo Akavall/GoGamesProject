@@ -23,6 +23,7 @@ type PlayerTurnResult struct {
 	TimesShot int
 	TotalScore int
 	IsDead bool
+	Winner string
 }
 
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
@@ -164,14 +165,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	}
 
 	game_state, ok := zombie_games[uuid]
-
-	log.Print("GAME_STATE : ", game_state.GameOver)
-	log.Print("PLAYER 1 : ", game_state.Players[0].Name)
-	log.Print("TOTAL SCORE : ", *game_state.Players[0].TotalScore)
-
-	log.Print("PLAYER 2 : ", game_state.Players[1].Name)
-	log.Print("TOTAL SCORE : ", *game_state.Players[1].TotalScore)
-
+ 
 	if !ok {
 		http.Error(response, fmt.Sprintf("Game with id %s not found!", uuid), http.StatusBadRequest)
 		return
@@ -215,33 +209,22 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	}
 
 	//TO-DO: should eventually return the Player and PlayerState structs as JSON
+	player_turn_result := PlayerTurnResult{TurnResult: turn_result, 
+	RoundScore: active_player.PlayerState.CurrentScore,
+	TimesShot: active_player.PlayerState.TimesShot,
+	TotalScore: *active_player.TotalScore,
+	IsDead: active_player.PlayerState.IsDead,
+	Winner: game_state.Winner.Name}
+
+	json_string, err := json.Marshal(player_turn_result)
+	if err != nil {
+		panic(err) //TO-DO: handle this error better
+	}
+
+	fmt.Fprintf(response, string(json_string))
+
 	if game_state.GameOver {
-		fmt.Fprintf(response, "won:%s", game_state.Winner.Name)
 		delete(zombie_games, uuid)
-	} else {
-		//fmt.Fprintf(response, "%s|round score : %d|times shot : %d|total score : %d|is dead : %t", turn_result, active_player.PlayerState.CurrentScore, active_player.PlayerState.TimesShot, *active_player.TotalScore, active_player.PlayerState.IsDead)
-
-		//silly := []byte (`{"bee" : "hive", "river" : "beast", "horse" : [1,2,55]}`)
-
-		player_turn_result := PlayerTurnResult{TurnResult: turn_result, 
-	                RoundScore: active_player.PlayerState.CurrentScore,
-			TimesShot: active_player.PlayerState.TimesShot,
-			TotalScore: *active_player.TotalScore,
-			IsDead: active_player.PlayerState.IsDead}
-		
-		fmt.Println("Player Turn Result")
-		fmt.Println(player_turn_result)
-
-		json_string, err := json.Marshal(player_turn_result)
-		if err != nil {
-			panic(err)
-		}
-	
-		fmt.Fprintf(response, string(json_string))
-		fmt.Println(turn_result)
-		fmt.Println("JSON string")
-		fmt.Println(string(json_string))
-
 	}
 
 	if active_player.PlayerState.IsDead {
