@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"encoding/json"
 
 	"github.com/Akavall/GoGamesProject/dice"
 	"github.com/Akavall/GoGamesProject/statistics"
@@ -15,6 +16,11 @@ import (
 )
 
 const MAX_ZOMBIE_DICE_GAMES = 60
+
+type PlayerTurnResult struct {
+	turn_result [3][2]string
+	player_state PlayerState 
+}
 
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
 var zombie_games = make(map[string]*zombie_dice.GameState)
@@ -192,7 +198,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		}
 	}
 
-	turn_result := "end_turn"
+	turn_result := [3][2]string{}
 	if continue_game {
 		turn_result, err = active_player.TakeTurn(&game_state.ZombieDeck)
 		if err != nil {
@@ -212,9 +218,14 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	} else {
 		//fmt.Fprintf(response, "%s|round score : %d|times shot : %d|total score : %d|is dead : %t", turn_result, active_player.PlayerState.CurrentScore, active_player.PlayerState.TimesShot, *active_player.TotalScore, active_player.PlayerState.IsDead)
 
-		silly := []byte (`{"bee" : "hive", "river" : "beast"}`)
-		fmt.Fprintf(response, string(silly))
+		//silly := []byte (`{"bee" : "hive", "river" : "beast", "horse" : [1,2,55]}`)
 
+		json_string, err := json.Marshal(turn_result)
+		if err != nil {
+			panic(err)
+		}
+	
+		fmt.Fprintf(response, string(json_string))
 		fmt.Println(turn_result)
 
 	}

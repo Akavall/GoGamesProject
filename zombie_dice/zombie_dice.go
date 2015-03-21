@@ -92,9 +92,10 @@ func InitGameState(players Players) (gs GameState, err error) {
 	return GameState{Players: players, ZombieDeck: deck, PlayerTurn: 0, Winner: Player{}, GameOver: false, IsActive: false}, nil
 }
 
-func (p *Player) TakeTurn(deck *ZombieDeck) (s string, err error) {
+func (p *Player) TakeTurn(deck *ZombieDeck) (s [3][2]string, err error) {
+	turn_result := [3][2]string{}
 	if p.PlayerState.IsDead == true {
-		return "", errors.New(fmt.Sprintf("Player %s is dead and cannot take more turns!", p.Name))
+		return turn_result, errors.New(fmt.Sprintf("Player %s is dead and cannot take more turns!", p.Name))
 	}
 
 	dices_to_roll, err := deck.DealDice(DICE_TO_DEAL)
@@ -102,12 +103,12 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s string, err error) {
 		return
 	}
 
-	turn_result := ""
 	sides := make([]dice.Side, 0)
-	for _, d := range dices_to_roll {
+	for roll_ind, d := range dices_to_roll {
 		side := d.Roll()
 		sides = append(sides, side)
-		turn_result += d.Name + "," + side.Name + ";" //poor way to do this, but will do for now
+		turn_result[roll_ind][0] = d.Name
+                turn_result[roll_ind][1] = side.Name
 		log.Printf("%s rolled: %s, %s\n", p.Name, d.Name, side.Name)
 
 		if side.Name == "brain" {

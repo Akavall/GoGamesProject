@@ -7,11 +7,15 @@
 <h1>Play Zombie Dice!</h1>
 
 <div id="dice_roll">
-0
+<font color="red"> 0 </font>
 </div>
 
 <div id="silly">
 3
+</div>
+
+<div id="slot3">
+5
 </div>
 
 
@@ -53,10 +57,18 @@ function aiTurn() {
 function parseTurnData(data) {
     var silly = '{"silly" : "vat", "hat": "bat"}';
 
-    temp = JSON.parse(data)
+    turn_result = JSON.parse(data)
+
+    var roll_1 = turn_result[0][1].fontcolor(turn_result[0][0]);
+    var roll_2 = turn_result[1][1].fontcolor(turn_result[1][0]);
+    var roll_3 = turn_result[2][1].fontcolor(turn_result[2][0]);
+
+    turn_result_string = [roll_1, roll_2, roll_2].join("\t");
+
    
-    document.getElementById("dice_roll").innerHTML = temp["bee"];
-    document.getElementById("silly").innerHTML = silly;
+    document.getElementById("dice_roll").innerHTML = turn_result_string;
+    document.getElementById("silly").innerHTML = "temp1";
+    document.getElementById("slot3").innerHTML = "temp2";
 
     //document.getElementById("dice_roll").innerHTML = JSON.stringify(JSON.parse(silly), null, 2);
     // document.getElementById("dice_roll").innerHTML = silly;
