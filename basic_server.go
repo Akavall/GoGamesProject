@@ -19,7 +19,7 @@ const MAX_ZOMBIE_DICE_GAMES = 60
 
 type PlayerTurnResult struct {
 	turn_result [3][2]string
-	player_state PlayerState 
+	player zombie_dice.Player
 }
 
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
@@ -220,13 +220,20 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 
 		//silly := []byte (`{"bee" : "hive", "river" : "beast", "horse" : [1,2,55]}`)
 
-		json_string, err := json.Marshal(turn_result)
+		player_turn_result := PlayerTurnResult{turn_result: turn_result, player: active_player}
+
+		fmt.Println("Player Turn Result")
+		fmt.Println(player_turn_result)
+
+		json_string, err := json.Marshal(player_turn_result)
 		if err != nil {
 			panic(err)
 		}
 	
 		fmt.Fprintf(response, string(json_string))
 		fmt.Println(turn_result)
+		fmt.Println("JSON string")
+		fmt.Println(string(json_string))
 
 	}
 
