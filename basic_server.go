@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"encoding/json"
 
 	"github.com/Akavall/GoGamesProject/dice"
 	"github.com/Akavall/GoGamesProject/statistics"
@@ -15,6 +16,15 @@ import (
 )
 
 const MAX_ZOMBIE_DICE_GAMES = 60
+
+type PlayerTurnResult struct {
+	TurnResult [3][2]string
+	RoundScore int
+	TimesShot int
+	TotalScore int
+	IsDead bool
+	Winner string
+}
 
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
 var zombie_games = make(map[string]*zombie_dice.GameState)
@@ -140,6 +150,8 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		return
 	}
 
+	log.Print("PLAYERS NAME : ", player_name)
+
 	continue_string, err := parse_input(request, "continue")
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusBadRequest)
@@ -153,7 +165,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	}
 
 	game_state, ok := zombie_games[uuid]
-
+ 
 	if !ok {
 		http.Error(response, fmt.Sprintf("Game with id %s not found!", uuid), http.StatusBadRequest)
 		return
@@ -183,7 +195,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		}
 	}
 
-	turn_result := "end_turn"
+	turn_result := [3][2]string{}
 	if continue_game {
 		turn_result, err = active_player.TakeTurn(&game_state.ZombieDeck)
 		if err != nil {
@@ -197,11 +209,22 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	}
 
 	//TO-DO: should eventually return the Player and PlayerState structs as JSON
+	player_turn_result := PlayerTurnResult{TurnResult: turn_result, 
+	RoundScore: active_player.PlayerState.CurrentScore,
+	TimesShot: active_player.PlayerState.TimesShot,
+	TotalScore: *active_player.TotalScore,
+	IsDead: active_player.PlayerState.IsDead,
+	Winner: game_state.Winner.Name}
+
+	json_string, err := json.Marshal(player_turn_result)
+	if err != nil {
+		panic(err) //TO-DO: handle this error better
+	}
+
+	fmt.Fprintf(response, string(json_string))
+
 	if game_state.GameOver {
-		fmt.Fprintf(response, "won:%s", game_state.Winner.Name)
 		delete(zombie_games, uuid)
-	} else {
-		fmt.Fprintf(response, "%s|%d|%d|%d|%t", turn_result, active_player.PlayerState.CurrentScore, active_player.PlayerState.TimesShot, *active_player.TotalScore, active_player.PlayerState.IsDead)
 	}
 
 	if active_player.PlayerState.IsDead {

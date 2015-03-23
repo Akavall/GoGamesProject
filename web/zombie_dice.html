@@ -10,6 +10,27 @@
 0
 </div>
 
+<div id="TimesShot">
+0
+</div>
+
+<div id="RoundScore">
+0
+</div>
+
+<div id="IsDead">
+0
+</div>
+
+<div id="TotalScore">
+0
+</div>
+
+<div id="Winner">
+0
+</div>
+
+
 <div id="preset">
 <input type="button" id="start_game" onclick="startGame()" value="Start Game" />
 
@@ -46,7 +67,26 @@ function aiTurn() {
 }
 
 function parseTurnData(data) {
-    document.getElementById("dice_roll").innerHTML = data
+    player_turn_result = JSON.parse(data)
+
+    turn_result = player_turn_result["TurnResult"]
+
+    if (turn_result[0][0].length == 0) {
+        turn_result_string = "End of Turn";
+    } else {
+
+        var roll_1 = turn_result[0][1].fontcolor(turn_result[0][0]);
+        var roll_2 = turn_result[1][1].fontcolor(turn_result[1][0]);
+        var roll_3 = turn_result[2][1].fontcolor(turn_result[2][0]);
+        turn_result_string = [roll_1, roll_2, roll_3].join("\t");
+    }
+
+    document.getElementById("dice_roll").innerHTML = turn_result_string;
+    document.getElementById("TimesShot").innerHTML = "Times Shot : " + player_turn_result["TimesShot"];
+    document.getElementById("RoundScore").innerHTML = "Round Score : " + player_turn_result["RoundScore"];
+    document.getElementById("IsDead").innerHTML = "Is Dead? : " + player_turn_result["IsDead"];
+    document.getElementById("TotalScore").innerHTML = "Total Score : " + player_turn_result["TotalScore"];
+    document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];    
 }
 </script>
 
