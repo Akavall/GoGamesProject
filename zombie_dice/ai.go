@@ -74,5 +74,4 @@ func simulate_one_roll(walk_dices *dice.Dices, deck_left *ZombieDeck, previous_s
 		}
 	}
 	return 0, n_inner_brains
-
 }
