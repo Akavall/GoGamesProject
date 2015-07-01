@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"encoding/json"
+	"bytes" //Debug 
 
 	"github.com/Akavall/GoGamesProject/dice"
 	"github.com/Akavall/GoGamesProject/statistics"
@@ -24,6 +25,8 @@ type PlayerTurnResult struct {
 	TotalScore int
 	IsDead bool
 	Winner string
+	PlayerName string
+	ContinueGame bool
 }
 
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
@@ -164,6 +167,8 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		return
 	}
 
+	log.Printf("continue_game_0 : %s", continue_game)
+
 	game_state, ok := zombie_games[uuid]
  
 	if !ok {
@@ -212,18 +217,25 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.EndTurn()
 	}
 
-	//TO-DO: should eventually return the Player and PlayerState structs as JSON
 	player_turn_result := PlayerTurnResult{TurnResult: turn_result, 
 	RoundScore: active_player.PlayerState.CurrentScore,
 	TimesShot: active_player.PlayerState.TimesShot,
 	TotalScore: *active_player.TotalScore,
 	IsDead: active_player.PlayerState.IsDead,
-	Winner: game_state.Winner.Name}
+	Winner: game_state.Winner.Name,
+	PlayerName: active_player.Name,
+	ContinueGame: continue_game,}
+
+	log.Printf("continue_game_2 : %s", player_turn_result.ContinueGame)
 
 	json_string, err := json.Marshal(player_turn_result)
 	if err != nil {
 		panic(err) //TO-DO: handle this error better
 	}
+	
+	// Debug
+	b, _ := prettyprint(json_string)
+	fmt.Printf("%s", b)
 
 	fmt.Fprintf(response, string(json_string))
 
@@ -241,7 +253,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 
 func parse_input(request *http.Request, field string) (s string, err error) {
 	input_array := request.Form[field]
-
+	log.Printf("input_array", input_array)
 	parsed_input := ""
 	if len(input_array) == 1 {
 		parsed_input = input_array[0]
@@ -303,6 +315,13 @@ func roll_dice(response http.ResponseWriter, request *http.Request) {
 	log.Printf("Rolled %d for request: \n\t%v", side.Numerical_value, request)
 
 	fmt.Fprintf(response, "%d", side.Numerical_value)
+}
+
+// Debug 
+func prettyprint(b []byte) ([]byte, error) {
+    var out bytes.Buffer
+    err := json.Indent(&out, b, "", "  ")
+    return out.Bytes(), err
 }
 
 func main() {

@@ -10,6 +10,14 @@
 0
 </div>
 
+<div id="PlayerName">
+0
+</div>
+
+<div id="ContinueGame">
+0
+</div>
+
 <div id="TimesShot">
 0
 </div>
@@ -30,6 +38,10 @@
 0
 </div>
 
+<div id="Directions">
+0
+</div>
+
 
 <div id="preset">
 <input type="button" id="start_game" onclick="startGame()" value="Start Game" />
@@ -40,6 +52,8 @@
 
 <input type="button" id="ai_turn" onclick="aiTurn()" value="AI Turn" />
 </div>
+
+
 
 <script type="text/javascript">
 function startGame() {
@@ -82,11 +96,21 @@ function parseTurnData(data) {
     }
 
     document.getElementById("dice_roll").innerHTML = turn_result_string;
+    document.getElementById("PlayerName").innerHTML = "Player : " + player_turn_result["PlayerName"];
+    document.getElementById("ContinueGame").innerHTML = "ContinueGame : " + player_turn_result["ContinueGame"];
     document.getElementById("TimesShot").innerHTML = "Times Shot : " + player_turn_result["TimesShot"];
     document.getElementById("RoundScore").innerHTML = "Round Score : " + player_turn_result["RoundScore"];
     document.getElementById("IsDead").innerHTML = "Is Dead? : " + player_turn_result["IsDead"];
     document.getElementById("TotalScore").innerHTML = "Total Score : " + player_turn_result["TotalScore"];
-    document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];    
+    document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];
+
+    if (player_turn_result["IsDead"] == false) {
+        directions = "Hit Take Turn to make another roll or Stop Turn to end your turn"} else {
+        directions = "Your turn has ended, hit AI Turn for AI to make a move"
+       }
+    
+    document.getElementById("Directions").innerHTML = "Directions : " + directions;
+    
 }
 </script>
 
