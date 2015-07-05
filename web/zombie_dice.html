@@ -14,19 +14,11 @@
 0
 </div>
 
-<div id="ContinueTurn">
-0
-</div>
-
 <div id="TimesShot">
 0
 </div>
 
 <div id="RoundScore">
-0
-</div>
-
-<div id="IsDead">
 0
 </div>
 
@@ -98,10 +90,8 @@ function parseTurnData(data) {
 
     document.getElementById("dice_roll").innerHTML = turn_result_string;
     document.getElementById("PlayerName").innerHTML = "Player : " + player_turn_result["PlayerName"];
-    document.getElementById("ContinueTurn").innerHTML = "ContinueTurn : " + player_turn_result["ContinueTurn"];
     document.getElementById("TimesShot").innerHTML = "Times Shot : " + player_turn_result["TimesShot"];
     document.getElementById("RoundScore").innerHTML = "Round Score : " + player_turn_result["RoundScore"];
-    document.getElementById("IsDead").innerHTML = "Is Dead? : " + player_turn_result["IsDead"];
     document.getElementById("TotalScore").innerHTML = "Total Score : " + player_turn_result["TotalScore"];
     document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];
 
