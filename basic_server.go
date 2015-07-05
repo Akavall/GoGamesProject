@@ -246,7 +246,6 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 
 func parse_input(request *http.Request, field string) (s string, err error) {
 	input_array := request.Form[field]
-	log.Printf("input_array", input_array)
 	parsed_input := ""
 	if len(input_array) == 1 {
 		parsed_input = input_array[0]
