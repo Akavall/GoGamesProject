@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strconv"
 	"encoding/json"
-	"bytes" //Debug 
 
 	"github.com/Akavall/GoGamesProject/dice"
 	"github.com/Akavall/GoGamesProject/statistics"
@@ -26,7 +25,7 @@ type PlayerTurnResult struct {
 	IsDead bool
 	Winner string
 	PlayerName string
-	ContinueGame bool
+	ContinueTurn bool
 }
 
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
@@ -155,19 +154,19 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 
 	log.Print("PLAYERS NAME : ", player_name)
 
-	continue_string, err := parse_input(request, "continue")
+	continue_turn_string, err := parse_input(request, "continue")
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	continue_game, err := strconv.ParseBool(continue_string)
+	continue_turn, err := strconv.ParseBool(continue_turn_string)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("continue_game_0 : %s", continue_game)
+	log.Printf("continue_turn_0 : %s", continue_turn)
 
 	game_state, ok := zombie_games[uuid]
  
@@ -200,12 +199,12 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 			active_player.PlayerState.BrainsRolled,
 		        active_player.PlayerState.WalksTaken,
 		        &game_state.ZombieDeck) == 0 {
-			continue_game = false
+			continue_turn = false
 		}
 	}
 
 	turn_result := [3][2]string{}
-	if continue_game {
+	if continue_turn {
 		turn_result, err = active_player.TakeTurn(&game_state.ZombieDeck)
 		if err != nil {
 			http.Error(response, fmt.Sprintf("Error occured while player %s was taking turn: %s", active_player.Name, err.Error()), http.StatusBadRequest)
@@ -217,26 +216,20 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.EndTurn()
 	}
 
-	player_turn_result := PlayerTurnResult{TurnResult: turn_result, 
+        player_turn_result := PlayerTurnResult{TurnResult: turn_result, 
 	RoundScore: active_player.PlayerState.CurrentScore,
 	TimesShot: active_player.PlayerState.TimesShot,
 	TotalScore: *active_player.TotalScore,
 	IsDead: active_player.PlayerState.IsDead,
 	Winner: game_state.Winner.Name,
 	PlayerName: active_player.Name,
-	ContinueGame: continue_game,}
-
-	log.Printf("continue_game_2 : %s", player_turn_result.ContinueGame)
+	ContinueTurn: continue_turn,}
 
 	json_string, err := json.Marshal(player_turn_result)
 	if err != nil {
 		panic(err) //TO-DO: handle this error better
 	}
 	
-	// Debug
-	b, _ := prettyprint(json_string)
-	fmt.Printf("%s", b)
-
 	fmt.Fprintf(response, string(json_string))
 
 	if game_state.GameOver {
@@ -315,13 +308,6 @@ func roll_dice(response http.ResponseWriter, request *http.Request) {
 	log.Printf("Rolled %d for request: \n\t%v", side.Numerical_value, request)
 
 	fmt.Fprintf(response, "%d", side.Numerical_value)
-}
-
-// Debug 
-func prettyprint(b []byte) ([]byte, error) {
-    var out bytes.Buffer
-    err := json.Indent(&out, b, "", "  ")
-    return out.Bytes(), err
 }
 
 func main() {

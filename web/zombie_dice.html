@@ -14,7 +14,7 @@
 0
 </div>
 
-<div id="ContinueGame">
+<div id="ContinueTurn">
 0
 </div>
 
@@ -71,6 +71,7 @@ function takeTurn() {
 
 function stopTurn() {
     $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=false", "", function(data, status) {
+                parseTurnData(data)
             });
 }
 
@@ -97,17 +98,31 @@ function parseTurnData(data) {
 
     document.getElementById("dice_roll").innerHTML = turn_result_string;
     document.getElementById("PlayerName").innerHTML = "Player : " + player_turn_result["PlayerName"];
-    document.getElementById("ContinueGame").innerHTML = "ContinueGame : " + player_turn_result["ContinueGame"];
+    document.getElementById("ContinueTurn").innerHTML = "ContinueTurn : " + player_turn_result["ContinueTurn"];
     document.getElementById("TimesShot").innerHTML = "Times Shot : " + player_turn_result["TimesShot"];
     document.getElementById("RoundScore").innerHTML = "Round Score : " + player_turn_result["RoundScore"];
     document.getElementById("IsDead").innerHTML = "Is Dead? : " + player_turn_result["IsDead"];
     document.getElementById("TotalScore").innerHTML = "Total Score : " + player_turn_result["TotalScore"];
     document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];
 
-    if (player_turn_result["IsDead"] == false) {
-        directions = "Hit Take Turn to make another roll or Stop Turn to end your turn"} else {
-        directions = "Your turn has ended, hit AI Turn for AI to make a move"
-       }
+
+    if (player_turn_result["PlayerName"] == "You") {
+        if (player_turn_result["IsDead"] == false && player_turn_result["ContinueTurn"] == true) {
+            directions = "Your turn! Hit Take Turn to make another roll or Stop Turn to end your turn."
+        } else {
+            directions = "Your turn has ended, hit AI Turn for AI to make a move."
+               }
+    } else {
+        if (player_turn_result["IsDead"] == false && player_turn_result["ContinueTurn"] == true) {
+            directions = "AI turn! hit AI Turn for AI to make a move."
+        } else {
+            directions = "AI turn has ended.  Hit Take Turn to make another roll or Stop Turn to end your turn."
+               }
+           }
+
+    if (player_turn_result["Winner"].length > 0) {
+         directions = "Game Over. You can start a new one by refreshing the browser."
+    }
     
     document.getElementById("Directions").innerHTML = "Directions : " + directions;
     
