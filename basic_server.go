@@ -24,6 +24,8 @@ type PlayerTurnResult struct {
 	TotalScore int
 	IsDead bool
 	Winner string
+	PlayerName string
+	ContinueTurn bool
 }
 
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
@@ -152,17 +154,19 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 
 	log.Print("PLAYERS NAME : ", player_name)
 
-	continue_string, err := parse_input(request, "continue")
+	continue_turn_string, err := parse_input(request, "continue")
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	continue_game, err := strconv.ParseBool(continue_string)
+	continue_turn, err := strconv.ParseBool(continue_turn_string)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	log.Printf("continue_turn_0 : %s", continue_turn)
 
 	game_state, ok := zombie_games[uuid]
  
@@ -195,12 +199,12 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 			active_player.PlayerState.BrainsRolled,
 		        active_player.PlayerState.WalksTaken,
 		        &game_state.ZombieDeck) == 0 {
-			continue_game = false
+			continue_turn = false
 		}
 	}
 
 	turn_result := [3][2]string{}
-	if continue_game {
+	if continue_turn {
 		turn_result, err = active_player.TakeTurn(&game_state.ZombieDeck)
 		if err != nil {
 			http.Error(response, fmt.Sprintf("Error occured while player %s was taking turn: %s", active_player.Name, err.Error()), http.StatusBadRequest)
@@ -212,19 +216,20 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.EndTurn()
 	}
 
-	//TO-DO: should eventually return the Player and PlayerState structs as JSON
-	player_turn_result := PlayerTurnResult{TurnResult: turn_result, 
+        player_turn_result := PlayerTurnResult{TurnResult: turn_result, 
 	RoundScore: active_player.PlayerState.CurrentScore,
 	TimesShot: active_player.PlayerState.TimesShot,
 	TotalScore: *active_player.TotalScore,
 	IsDead: active_player.PlayerState.IsDead,
-	Winner: game_state.Winner.Name}
+	Winner: game_state.Winner.Name,
+	PlayerName: active_player.Name,
+	ContinueTurn: continue_turn,}
 
 	json_string, err := json.Marshal(player_turn_result)
 	if err != nil {
 		panic(err) //TO-DO: handle this error better
 	}
-
+	
 	fmt.Fprintf(response, string(json_string))
 
 	if game_state.GameOver {
@@ -241,7 +246,6 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 
 func parse_input(request *http.Request, field string) (s string, err error) {
 	input_array := request.Form[field]
-
 	parsed_input := ""
 	if len(input_array) == 1 {
 		parsed_input = input_array[0]

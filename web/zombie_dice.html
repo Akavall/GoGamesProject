@@ -10,6 +10,10 @@
 0
 </div>
 
+<div id="PlayerName">
+0
+</div>
+
 <div id="TimesShot">
 0
 </div>
@@ -18,15 +22,15 @@
 0
 </div>
 
-<div id="IsDead">
-0
-</div>
-
 <div id="TotalScore">
 0
 </div>
 
 <div id="Winner">
+0
+</div>
+
+<div id="Directions">
 0
 </div>
 
@@ -41,27 +45,30 @@
 <input type="button" id="ai_turn" onclick="aiTurn()" value="AI Turn" />
 </div>
 
+
+
 <script type="text/javascript">
 function startGame() {
-    $.post("http://localhost:8000/zombie_dice/start_game?num_players=2&player1=Andrew&player1_ai=false&player2=random&player2_ai=true", "", function(data, status) {
+    $.post("http://localhost:8000/zombie_dice/start_game?num_players=2&player1=You&player1_ai=false&player2=AI Player&player2_ai=true", "", function(data, status) {
                 window.game_state_id = data;
                 document.getElementById("start_game").disabled = true;
             });
 }
 
 function takeTurn() {
-     $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=Andrew&continue=true", "", function(data, status) {
+     $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=true", "", function(data, status) {
                 parseTurnData(data)
             });
 }
 
 function stopTurn() {
-    $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=Andrew&continue=false", "", function(data, status) {
+    $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=false", "", function(data, status) {
+                parseTurnData(data)
             });
 }
 
 function aiTurn() {
-     $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=random&continue=true", "", function(data, status) {
+     $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=AI Player&continue=true", "", function(data, status) {
                 parseTurnData(data)
             });
 }
@@ -82,11 +89,33 @@ function parseTurnData(data) {
     }
 
     document.getElementById("dice_roll").innerHTML = turn_result_string;
+    document.getElementById("PlayerName").innerHTML = "Player : " + player_turn_result["PlayerName"];
     document.getElementById("TimesShot").innerHTML = "Times Shot : " + player_turn_result["TimesShot"];
     document.getElementById("RoundScore").innerHTML = "Round Score : " + player_turn_result["RoundScore"];
-    document.getElementById("IsDead").innerHTML = "Is Dead? : " + player_turn_result["IsDead"];
     document.getElementById("TotalScore").innerHTML = "Total Score : " + player_turn_result["TotalScore"];
-    document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];    
+    document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];
+
+
+    if (player_turn_result["PlayerName"] == "You") {
+        if (player_turn_result["IsDead"] == false && player_turn_result["ContinueTurn"] == true) {
+            directions = "Your turn! Hit Take Turn to make another roll or Stop Turn to end your turn."
+        } else {
+            directions = "Your turn has ended, hit AI Turn for AI to make a move."
+               }
+    } else {
+        if (player_turn_result["IsDead"] == false && player_turn_result["ContinueTurn"] == true) {
+            directions = "AI turn! hit AI Turn for AI to make a move."
+        } else {
+            directions = "AI turn has ended.  Hit Take Turn to make another roll or Stop Turn to end your turn."
+               }
+           }
+
+    if (player_turn_result["Winner"].length > 0) {
+         directions = "Game Over. You can start a new one by refreshing the browser."
+    }
+    
+    document.getElementById("Directions").innerHTML = "Directions : " + directions;
+    
 }
 </script>
 
