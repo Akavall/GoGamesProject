@@ -317,8 +317,8 @@ func main() {
 	mux.HandleFunc("/zombie_dice/take_turn", take_zombie_dice_turn)
 	mux.HandleFunc("/four_dice_roll", four_dice_roll)
 	mux.HandleFunc("/roll_dice", roll_dice)
-	log.Printf("Started dumb Dice web server! Try it on http://localhost:8000")
-	err := http.ListenAndServe(":8000", mux)
+	log.Printf("Started dumb Dice web server! Try it on http://ip_address:8000")
+	err := http.ListenAndServe("0.0.0.0:8000", mux)
 
 	if err != nil {
 		log.Fatal(err)
