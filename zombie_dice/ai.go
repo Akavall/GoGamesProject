@@ -25,6 +25,7 @@ func RandomAI() int {
 }
 
 func SimulationistAI(previous_shots, already_gained_brains, walks int, deck_left *ZombieDeck) int {
+
 	// We need to make a copy of deck_left, so not to
 	// mutate the original deck when we are training 
 
