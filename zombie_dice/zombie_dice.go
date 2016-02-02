@@ -41,7 +41,7 @@ type PlayerState struct {
 	CurrentScore int
 	TimesShot    int
 	BrainsRolled int
-	WalksTaken   int
+	WalksTakenLastRoll int 
 	IsDead       bool
 }
 
@@ -82,6 +82,7 @@ func (ps *PlayerState) Reset() {
 	ps.TurnsTaken = 0
 	ps.CurrentScore = 0
 	ps.TimesShot = 0
+	ps.WalksTakenLastRoll = 0
 	ps.IsDead = false
 }
 
@@ -103,6 +104,7 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s [3][2]string, err error) {
 		return
 	}
 
+	p.PlayerState.WalksTakenLastRoll = 0
 	sides := make([]dice.Side, 0)
 	for roll_ind, d := range dices_to_roll {
 		side := d.Roll()
@@ -120,7 +122,7 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s [3][2]string, err error) {
 			// Since walks get replayed we have to
 			// put them back in the deck
 			deck.AddDice(d)
-			p.PlayerState.WalksTaken++
+			p.PlayerState.WalksTakenLastRoll++
 		} else {
 			return turn_result, errors.New(fmt.Sprintf("Unrecognized dice side has been rolled: %s", side.Name))
 		}
@@ -157,7 +159,7 @@ func shouldKeepGoing(p Player, deck *ZombieDeck) bool {
 	case "random":
 		answer = RandomAI()
 	case "simulationist":
-		answer = SimulationistAI(p.PlayerState.TimesShot, p.PlayerState.BrainsRolled, p.PlayerState.WalksTaken, deck)
+		answer = SimulationistAI(p.PlayerState.TimesShot, p.PlayerState.BrainsRolled, p.PlayerState.WalksTakenLastRoll, deck)
 	}
 
 	if answer == 0 {

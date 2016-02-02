@@ -2,6 +2,7 @@ package dice
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -33,7 +34,7 @@ func (d *Deck) DealDice(num_dice int) (Dices, error) {
 		d.Dices = append(d.Dices[:0], d.Dices[:len(d.Dices)-num_dice]...)
 		return dealt_dice, nil
 	} else {
-		return nil, errors.New("Not enough dice in deck!")
+		return nil, errors.New(fmt.Sprintf("\033[0;31mNot enough dice in deck! Dice in deck: %d, %d requested.\033[0m", len(d.Dices), num_dice))
 	}
 }
 
