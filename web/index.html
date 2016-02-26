@@ -27,7 +27,7 @@ Custom sides: <input type="text" id="t2" /><input type="button" onclick="takeStr
 
 <script type="text/javascript">
 function rollDice(num_sides) {
-    $.post("http://52.33.0.109:8000/roll_dice?sides="+num_sides, "", function(data, status) {
+    $.post("http://localhost:8000/roll_dice?sides="+num_sides, "", function(data, status) {
             $("#dice_roll").empty();
             $("#dice_roll").append(data);
             });
@@ -54,7 +54,7 @@ function takeStringAndRoll() {
         var sides_array = custom_sides.split(",");  
         var num_sides = sides_array.length
     
-        $.post("http://52.33.0.109:8000/roll_dice?sides="+num_sides, "", function(data, status)     {
+        $.post("http://localhost:8000/roll_dice?sides="+num_sides, "", function(data, status)     {
                  $("#dice_roll").empty();
                  $("#dice_roll").append(sides_array[data - 1]);
             });
