@@ -83,6 +83,7 @@ func (ps *PlayerState) Reset() {
 	ps.CurrentScore = 0
 	ps.TimesShot = 0
 	ps.WalksTakenLastRoll = 0
+	ps.BrainsRolled = 0
 	ps.IsDead = false
 }
 
@@ -224,7 +225,7 @@ func PlayWithAI() {
 			gameState.EndTurn()
 		}
 
-		if gameState.GameOver == true {
+		if gameState.GameOver {
 			log.Printf("Player %s won!", gameState.Winner.Name)
 			break
 		}

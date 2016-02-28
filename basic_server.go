@@ -195,6 +195,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 
 	if active_player.IsAI {
 		log.Printf("Size of deck : %d\n", len(game_state.ZombieDeck.Deck.Dices))
+                log.Printf("\033[034mshot: %d,brains: %d, walks: %d\033[0m", active_player.PlayerState.TimesShot, active_player.PlayerState.BrainsRolled, active_player.PlayerState.WalksTakenLastRoll)
 		if zombie_dice.SimulationistAI(active_player.PlayerState.TimesShot,
 			active_player.PlayerState.BrainsRolled,
 		        active_player.PlayerState.WalksTakenLastRoll,
