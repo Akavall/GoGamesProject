@@ -83,20 +83,6 @@ func (gs *GameState) endRound() {
 		}
 	}
 
-	// max_score := 0
-	// var player_with_max Player
-	// for _, p := range gs.Players {
-	// 	if *p.TotalScore >= max_score {
-	// 		max_score = *p.TotalScore
-	// 		player_with_max = p
-	// 	}
-	// }
-
-	// if max_score >= WINNING_SCORE {
-	// 	gs.Winner = player_with_max
-	// 	gs.GameOver = true
-	// }
-
 }
 
 func (ps *PlayerState) Reset() {
