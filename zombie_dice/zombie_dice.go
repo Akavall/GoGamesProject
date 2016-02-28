@@ -61,21 +61,42 @@ func (gs *GameState) EndTurn() {
 }
 
 func (gs *GameState) endRound() {
-	//check scores
-	//TO-DO: need to handle ties
+
+	player_score_to_count := map[int]int {}
 	max_score := 0
-	var player_with_max Player
 	for _, p := range gs.Players {
-		if *p.TotalScore >= max_score {
+		log.Printf("\033[0;32mPlayer: %s, Score: %d\033[0m", p.Name, *p.TotalScore)
+		player_score_to_count[*p.TotalScore] += 1
+		if *p.TotalScore > max_score {
 			max_score = *p.TotalScore
-			player_with_max = p
 		}
 	}
 
-	if max_score >= WINNING_SCORE {
-		gs.Winner = player_with_max
-		gs.GameOver = true
+	log.Printf("\033[32mMax score: %d\033[0m", max_score)
+	
+	if max_score >= WINNING_SCORE && player_score_to_count[max_score] == 1 {
+		for _, p := range gs.Players {
+			if *p.TotalScore == max_score {
+				gs.Winner = p
+				gs.GameOver = true 
+			}
+		}
 	}
+
+	// max_score := 0
+	// var player_with_max Player
+	// for _, p := range gs.Players {
+	// 	if *p.TotalScore >= max_score {
+	// 		max_score = *p.TotalScore
+	// 		player_with_max = p
+	// 	}
+	// }
+
+	// if max_score >= WINNING_SCORE {
+	// 	gs.Winner = player_with_max
+	// 	gs.GameOver = true
+	// }
+
 }
 
 func (ps *PlayerState) Reset() {
