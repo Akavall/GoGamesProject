@@ -83,6 +83,7 @@ func (ps *PlayerState) Reset() {
 	ps.CurrentScore = 0
 	ps.TimesShot = 0
 	ps.WalksTakenLastRoll = 0
+	ps.BrainsRolled = 0
 	ps.IsDead = false
 }
 
@@ -201,8 +202,6 @@ func PlayWithAI() {
 					log.Printf("Error occured while player %s was taking turn: %s", p.Name, err.Error())
 					break
 				}
-
-				log.Printf("Current score: %d; Times shot: %d", p.PlayerState.CurrentScore, p.PlayerState.TimesShot)
 
 				if p.PlayerState.IsDead {
 					log.Printf("Player %s has died! No points scored.", p.Name)
