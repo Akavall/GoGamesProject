@@ -203,6 +203,8 @@ func PlayWithAI() {
 					break
 				}
 
+				log.Printf("Current score: %d; Times shot: %d", p.PlayerState.CurrentScore, p.PlayerState.TimesShot)
+
 				if p.PlayerState.IsDead {
 					log.Printf("Player %s has died! No points scored.", p.Name)
 					p.PlayerState.Reset()
@@ -223,7 +225,7 @@ func PlayWithAI() {
 			gameState.EndTurn()
 		}
 
-		if gameState.GameOver == true {
+		if gameState.GameOver {
 			log.Printf("Player %s won!", gameState.Winner.Name)
 			break
 		}
