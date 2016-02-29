@@ -41,3 +41,11 @@ func (d *Deck) DealDice(num_dice int) (Dices, error) {
 func (d *Deck) AddDice(new_dice Dice) {
 	d.Dices = append(d.Dices, new_dice)
 }
+
+func (d *Deck) AddDeck(new_deck Deck) {
+	d.Dices = append(d.Dices, new_deck.Dices...)
+}
+
+func (d *Deck) PrependDeck(new_deck Deck) {
+	d.Dices = append(new_deck.Dices, d.Dices...)
+}

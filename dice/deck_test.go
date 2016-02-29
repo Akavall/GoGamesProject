@@ -1,6 +1,9 @@
 package dice
 
-import "testing"
+import (
+	"testing"
+	"reflect"
+)
 
 const DEFAULT_DECK_SIZE = 10
 
@@ -111,6 +114,41 @@ func TestAddDice(t *testing.T) {
 		t.Errorf(`Expected %d sides, but got %d`, TEST_N_SIDES, len(dices[0].Sides))
 	}
 }
+
+func TestAddDeck(t *testing.T) {
+	const NEW_DECK_SIZE = 3
+	deck := initBasicTestDeck(DEFAULT_DECK_SIZE)
+	new_deck := initBasicTestDeck (NEW_DECK_SIZE)
+	deck.AddDeck(new_deck)
+	// I am getting back the deck that I created
+	new_deck_back := deck.Dices[DEFAULT_DECK_SIZE:]
+
+	if !(reflect.DeepEqual(new_deck.Dices, new_deck_back)) {
+		t.Errorf("Added dices: %v, but got back: %v", new_deck.Dices, new_deck_back)
+	}
+
+	if (DEFAULT_DECK_SIZE + NEW_DECK_SIZE != len(deck.Dices)) {
+		t.Errorf("Default deck size: %d, plus new deck size: %d does not equal the combided deck size: %d", DEFAULT_DECK_SIZE, NEW_DECK_SIZE, len(deck.Dices))
+	}
+}
+
+func TestPrependDeck(t *testing.T) {
+	const NEW_DECK_SIZE = 3
+	deck := initBasicTestDeck(DEFAULT_DECK_SIZE)
+	new_deck := initBasicTestDeck (NEW_DECK_SIZE)
+	deck.PrependDeck(new_deck)
+	// I am getting back the deck that I created
+	new_deck_back := deck.Dices[:NEW_DECK_SIZE]
+
+	if !(reflect.DeepEqual(new_deck.Dices, new_deck_back)) {
+		t.Errorf("Added dices: %v, but got back: %v", new_deck.Dices, new_deck_back)
+	}
+
+	if (DEFAULT_DECK_SIZE + NEW_DECK_SIZE != len(deck.Dices)) {
+		t.Errorf("Default deck size: %d, plus new deck size: %d does not equal the combided deck size: %d", DEFAULT_DECK_SIZE, NEW_DECK_SIZE, len(deck.Dices))
+	}
+}
+
 
 func initBasicTestDeck(deck_size int) Deck {
 	dice_list := make(Dices, deck_size)

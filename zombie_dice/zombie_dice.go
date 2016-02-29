@@ -100,6 +100,13 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s [3][2]string, err error) {
 		return turn_result, errors.New(fmt.Sprintf("Player %s is dead and cannot take more turns!", p.Name))
 	}
 
+	if len(deck.Dices) < DICE_TO_DEAL {
+		log.Printf("\033[33mDeck size is too small: %d, adding another zombie deck to the existing deck\033[0m", len(deck.Dices))
+		new_deck := InitZombieDeck()
+		new_deck.Shuffle()
+		deck.Prepend(new_deck)
+	}
+
 	dices_to_roll, err := deck.DealDice(DICE_TO_DEAL)
 	if err != nil {
 		return
