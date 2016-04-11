@@ -35,6 +35,10 @@
 0
 </div>
 
+<div id="GameId">
+0
+</div>
+
 
 <div id="preset">
 <input type="button" id="start_game" onclick="startGame()" value="Start Game" />
@@ -44,7 +48,9 @@
 <input type="button" id="stop_turn" onclick="stopTurn()" value="Stop Turn" />
 
 <input type="button" id="ai_turn" onclick="aiTurn()" value="AI Turn" />
-</div>
+</div> <br>
+
+Join Game: <input type="text" id="t1" /> <input type="button" id="join_game" onclick="joinGame()" value="Join Game" />
 
 <p> Zombie Dice: The goal is to get to 13 brains before your opponent. </p>
 <p> Each turn the player starts with a set of 13 dice. A turn proceeds in three steps: a player rolls three dice, each dice has 3 possible out comes: brain, walk and shot. These dice are selected at random without replacement from the set. If a player stops the turn with less then three shots, number of gained brains (Round Score) is added to total score. If number of shots during the turn equals or exceeds three, the turn automatically ends with no brains added to total score.
@@ -53,21 +59,36 @@
 
 
 <script type="text/javascript">
+
+var this_player_id = Math.floor(Math.random() * 1000000).toString();
+
 function startGame() {
-    $.post("http://localhost:8000/zombie_dice/start_game?num_players=2&player1=You&player1_ai=false&player2=AI Player&player2_ai=true", "", function(data, status) {
+    $.post("http://localhost:8000/zombie_dice/start_game?num_players=1&player1=" + this_player_id + "&player1_ai=false", "", function(data, status) {
                 window.game_state_id = data;
                 document.getElementById("start_game").disabled = true;
+                document.getElementById("GameId").innerHTML = window.game_state_id;
+            });
+}
+
+function joinGame() {
+    var game_id = document.getElementById("t1").value;
+    window.game_state_id = game_id;
+
+    document.getElementById("GameId").innerHTML = window.game_state_id;
+
+    $.post("http://localhost:8000/zombie_dice/join_game?player2=" + this_player_id + "&game_id=" + game_id, "", function(data, status) {
+                document.getElementById("join_game").disabled = true;
             });
 }
 
 function takeTurn() {
-     $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=true", "", function(data, status) {
+     $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=" + this_player_id + "&continue=true", "", function(data, status) {
                 parseTurnData(data)
             });
 }
 
 function stopTurn() {
-    $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=false", "", function(data, status) {
+    $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=" + player_to_move +"&continue=false", "", function(data, status) {
                 parseTurnData(data)
             });
 }
@@ -101,7 +122,7 @@ function parseTurnData(data) {
     document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];
 
 
-    if (player_turn_result["PlayerName"] == "You") {
+    if (player_turn_result["PlayerName"] == ["You", "Host", "Guest"]) {
         if (player_turn_result["IsDead"] == false && player_turn_result["ContinueTurn"] == true) {
             directions = "Your turn! Hit Take Turn to make another roll or Stop Turn to end your turn."
         } else {
@@ -120,7 +141,7 @@ function parseTurnData(data) {
     }
     
     document.getElementById("Directions").innerHTML = "Directions : " + directions;
-    
+
 }
 </script>
 
