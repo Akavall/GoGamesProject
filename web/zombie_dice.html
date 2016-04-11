@@ -88,7 +88,7 @@ function takeTurn() {
 }
 
 function stopTurn() {
-    $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=" + player_to_move +"&continue=false", "", function(data, status) {
+    $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=" + this_player_id +"&continue=false", "", function(data, status) {
                 parseTurnData(data)
             });
 }
