@@ -25,6 +25,7 @@ type GameState struct {
 	Winner     Player
 	GameOver   bool
 	IsActive   bool
+	MoveLog    []string
 }
 
 type Players []Player

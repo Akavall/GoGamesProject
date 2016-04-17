@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"encoding/json"
 
 	"github.com/Akavall/GoGamesProject/dice"
@@ -16,6 +17,9 @@ import (
 )
 
 const MAX_ZOMBIE_DICE_GAMES = 60
+
+var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
+var zombie_games = make(map[string]*zombie_dice.GameState)
 
 type PlayerTurnResult struct {
 	TurnResult [3][2]string
@@ -27,9 +31,6 @@ type PlayerTurnResult struct {
 	PlayerName string
 	ContinueTurn bool
 }
-
-var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
-var zombie_games = make(map[string]*zombie_dice.GameState)
 
 func zombie_game(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/html")
@@ -253,7 +254,9 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.EndTurn()
 	}
 
-        player_turn_result := PlayerTurnResult{TurnResult: turn_result, 
+        player_turn_result := PlayerTurnResult{
+
+	TurnResult: turn_result, 
 	RoundScore: active_player.PlayerState.CurrentScore,
 	TimesShot: active_player.PlayerState.TimesShot,
 	TotalScore: *active_player.TotalScore,
@@ -266,6 +269,8 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	if err != nil {
 		panic(err) //TO-DO: handle this error better
 	}
+
+	(*game_state).MoveLog = append((*game_state).MoveLog, string(json_string[:]))
 	
 	fmt.Fprintf(response, string(json_string))
 
@@ -279,6 +284,20 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	}
 
 	game_state.IsActive = false
+}
+
+func get_player_turn_results(response http.ResponseWriter, request *http.Request) {
+
+	err := request.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	game_id := request.Form["game_id"][0]
+	move_log := (*zombie_games[game_id]).MoveLog
+	formated_moves := strings.Join(move_log, "<br>")
+	
+	fmt.Fprintf(response, formated_moves)
 }
 
 func parse_input(request *http.Request, field string) (s string, err error) {
@@ -354,9 +373,13 @@ func main() {
 	mux.HandleFunc("/zombie_dice/start_game", start_zombie_dice)
 	mux.HandleFunc("/zombie_dice/join_game", join_game)
 	mux.HandleFunc("/zombie_dice/take_turn", take_zombie_dice_turn)
+	mux.HandleFunc("/zombie_dice/get_player_turn_results", get_player_turn_results)
+
 	mux.HandleFunc("/four_dice_roll", four_dice_roll)
 	mux.HandleFunc("/roll_dice", roll_dice)
+
 	log.Printf("Started dumb Dice web server! Try it on http://ip_address:8000")
+
 	err := http.ListenAndServe("0.0.0.0:8000", mux)
 
 	if err != nil {
