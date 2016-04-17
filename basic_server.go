@@ -21,17 +21,6 @@ const MAX_ZOMBIE_DICE_GAMES = 60
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
 var zombie_games = make(map[string]*zombie_dice.GameState)
 
-type PlayerTurnResult struct {
-	TurnResult [3][2]string
-	RoundScore int
-	TimesShot int
-	TotalScore int
-	IsDead bool
-	Winner string
-	PlayerName string
-	ContinueTurn bool
-}
-
 func zombie_game(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/html")
 
@@ -254,7 +243,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.EndTurn()
 	}
 
-        player_turn_result := PlayerTurnResult{
+        player_turn_result := zombie_dice.PlayerTurnResult{
 
 	TurnResult: turn_result, 
 	RoundScore: active_player.PlayerState.CurrentScore,
@@ -270,7 +259,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		panic(err) //TO-DO: handle this error better
 	}
 
-	(*game_state).MoveLog = append((*game_state).MoveLog, string(json_string[:]))
+	(*game_state).MoveLog = append((*game_state).MoveLog, player_turn_result)
 	
 	fmt.Fprintf(response, string(json_string))
 
@@ -293,11 +282,42 @@ func get_player_turn_results(response http.ResponseWriter, request *http.Request
 		panic(err)
 	}
 
-	game_id := request.Form["game_id"][0]
-	move_log := (*zombie_games[game_id]).MoveLog
-	formated_moves := strings.Join(move_log, "<br>")
+	game_id_form, _ := request.Form["game_id"]
+ 	
+	game_id := game_id_form[0]
+
+	current_game, ok := zombie_games[game_id]
+	if !ok {
+		// This will likely to happend, if a player
+		// is slow to start a game and/or another player
+		// is slow to join
+		log.Printf("Game id has not been found")
+		return
+	}
+
+	move_log := (*current_game).MoveLog
+
+	all_rolls := []string {}
+	for _, tr := range move_log {
+		roll_strings := []string {"Player: " + tr.PlayerName}
+		for i := 0; i < 3; i++ {
+			roll_strings = append(roll_strings, fmt.Sprintf("%s: %s", tr.TurnResult[i][0], tr.TurnResult[i][1]))
+		}
+
+		if tr.IsDead == true || tr.ContinueTurn == false {
+			roll_strings = append(roll_strings, "Player " + tr.PlayerName + " Turn Ended")
+		}
+		one_roll_string := strings.Join(roll_strings, "<br>")	
+		all_rolls = append(all_rolls, one_roll_string)
+	}
+
 	
+	formated_moves := strings.Join(all_rolls, "<br>")
+
 	fmt.Fprintf(response, formated_moves)
+	
+	// fmt.Fprintf(response, "Hello: %s, %d", game_id, len(move_log))
+
 }
 
 func parse_input(request *http.Request, field string) (s string, err error) {

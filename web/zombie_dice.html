@@ -52,11 +52,11 @@
 
 Join Game: <input type="text" id="t1" /> <input type="button" id="join_game" onclick="joinGame()" value="Join Game" />
 
-<p> Zombie Dice: The goal is to get to 13 brains before your opponent. </p>
-<p> Each turn the player starts with a set of 13 dice. A turn proceeds in three steps: a player rolls three dice, each dice has 3 possible out comes: brain, walk and shot. These dice are selected at random without replacement from the set. If a player stops the turn with less then three shots, number of gained brains (Round Score) is added to total score. If number of shots during the turn equals or exceeds three, the turn automatically ends with no brains added to total score.
-<p> The dice deck contains six green dice, four yellow dice, and three red dice.</p>
-<p> Dice Types: Green: three brain, two walk, one shot. Yellow: two brain, two walk, two shot, Red: one brain, two walk, three shot.</p>
-
+<!-- <p> Zombie Dice: The goal is to get to 13 brains before your opponent. </p>
+     <p> Each turn the player starts with a set of 13 dice. A turn proceeds in three steps: a player rolls three dice, each dice has 3 possible out comes: brain, walk and shot. These dice are selected at random without replacement from the set. If a player stops the turn with less then three shots, number of gained brains (Round Score) is added to total score. If number of shots during the turn equals or exceeds three, the turn automatically ends with no brains added to total score.
+     <p> The dice deck contains six green dice, four yellow dice, and three red dice.</p>
+     <p> Dice Types: Green: three brain, two walk, one shot. Yellow: two brain, two walk, two shot, Red: one brain, two walk, three shot.</p>
+   -->
 Game Status:
 <div id="game_status">
     0
@@ -166,9 +166,6 @@ function parseTurnData(data) {
        poll();
     }, 200);
  })();
-
-    
-
 
 </script>
 

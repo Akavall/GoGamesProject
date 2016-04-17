@@ -25,7 +25,7 @@ type GameState struct {
 	Winner     Player
 	GameOver   bool
 	IsActive   bool
-	MoveLog    []string
+	MoveLog    []PlayerTurnResult
 }
 
 type Players []Player
@@ -45,6 +45,18 @@ type PlayerState struct {
 	WalksTakenLastRoll int 
 	IsDead       bool
 }
+
+type PlayerTurnResult struct {
+	TurnResult [3][2]string
+	RoundScore int
+	TimesShot int
+	TotalScore int
+	IsDead bool
+	Winner string
+	PlayerName string
+	ContinueTurn bool
+}
+
 
 func (gs *GameState) EndTurn() {
 	next_player_turn := gs.PlayerTurn + 1
