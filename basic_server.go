@@ -305,7 +305,9 @@ func get_player_turn_results(response http.ResponseWriter, request *http.Request
 		}
 
 		if tr.IsDead == true || tr.ContinueTurn == false {
-			roll_strings = append(roll_strings, "Player " + tr.PlayerName + " Turn Ended")
+
+			turn_end_string := fmt.Sprintf("Player: %s, Total Score: %d, Turn Ended", tr.PlayerName, tr.TotalScore)
+			roll_strings = append(roll_strings, turn_end_string)
 		}
 		one_roll_string := strings.Join(roll_strings, "<br>")	
 		all_rolls = append(all_rolls, one_roll_string)
@@ -316,8 +318,28 @@ func get_player_turn_results(response http.ResponseWriter, request *http.Request
 
 	fmt.Fprintf(response, formated_moves)
 	
-	// fmt.Fprintf(response, "Hello: %s, %d", game_id, len(move_log))
+}
 
+func get_n_players_in_game(response http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	game_id_form, _ := request.Form["game_id"]
+ 	
+	game_id := game_id_form[0]
+
+	current_game, ok := zombie_games[game_id]
+	if !ok {
+		// This will likely to happend, if a player
+		// is slow to start a game and/or another player
+		// is slow to join
+		log.Printf("Game id has not been found")
+		return
+	}
+
+	fmt.Fprintf(response, "%d", len(current_game.Players))
 }
 
 func parse_input(request *http.Request, field string) (s string, err error) {
@@ -394,6 +416,7 @@ func main() {
 	mux.HandleFunc("/zombie_dice/join_game", join_game)
 	mux.HandleFunc("/zombie_dice/take_turn", take_zombie_dice_turn)
 	mux.HandleFunc("/zombie_dice/get_player_turn_results", get_player_turn_results)
+	mux.HandleFunc("/zombie_dice/get_n_players_in_game", get_n_players_in_game)
 
 	mux.HandleFunc("/four_dice_roll", four_dice_roll)
 	mux.HandleFunc("/roll_dice", roll_dice)

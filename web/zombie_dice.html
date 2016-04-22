@@ -39,6 +39,10 @@
 0
 </div>
 
+<div id="players_in_game">
+0
+</div>
+
 
 <div id="preset">
 <input type="button" id="start_game" onclick="startGame()" value="Start Game" />
@@ -49,6 +53,8 @@
 
 <input type="button" id="ai_turn" onclick="aiTurn()" value="AI Turn" />
 </div> <br>
+
+
 
 Join Game: <input type="text" id="t1" /> <input type="button" id="join_game" onclick="joinGame()" value="Join Game" />
 
@@ -159,6 +165,25 @@ function parseTurnData(data) {
           type: 'get',
           success: function(data) {
 	     document.getElementById("game_status").innerHTML = data;
+          }, 
+       });
+    };
+    setInterval(function() {
+       poll();
+    }, 200);
+ })();
+
+</script>
+
+<script type="text/javascript">
+
+ (function() {
+    var poll = function() {
+       $.ajax({
+          url: "http://localhost:8000/zombie_dice/get_n_players_in_game?" + "game_id=" + window.game_state_id,
+          type: 'get',
+          success: function(data) {
+	     document.getElementById("players_in_game").innerHTML = "Players in Game: " + data;
           }, 
        });
     };
