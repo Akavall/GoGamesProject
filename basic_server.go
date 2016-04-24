@@ -19,7 +19,7 @@ import (
 
 const MAX_ZOMBIE_DICE_GAMES = 60
 
-var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
+var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html", "web/zombie_dice_multi_player.html"))
 var zombie_games = make(map[string]*zombie_dice.GameState)
 
 func zombie_game(response http.ResponseWriter, request *http.Request) {
@@ -31,6 +31,17 @@ func zombie_game(response http.ResponseWriter, request *http.Request) {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 	}
 }
+
+func zombie_game_multi_player(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("Content-type", "text/html")
+
+	err := templates.ExecuteTemplate(response, "zombie_dice_multi_player.html", nil)
+
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 
 func index(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/html")
@@ -265,9 +276,20 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	fmt.Fprintf(response, string(json_string))
 
 	if game_state.GameOver {
-		// to display the game status
-		// winner_string := fmt.Sprintf("\nWinner: %s", game_state.Winner)
-		time.Sleep(time.Second * 30)
+		// sleeping to display the game status
+		// for multi player, skiping for games with AI
+		// TODO: There has to be a better way to do thi
+		
+		skip_sleep := false
+		for _, player := range (*game_state).Players {
+			if player.IsAI {
+				skip_sleep = true
+			}
+		}
+		if !skip_sleep {
+			log.Println("Sleeping...")
+			time.Sleep(time.Second * 30)
+		}
 		delete(zombie_games, uuid)
 	}
 
@@ -425,11 +447,15 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", index)
 	mux.HandleFunc("/zombie_dice", zombie_game)
+	mux.HandleFunc("/zombie_dice_multi_player", zombie_game_multi_player)
 	mux.HandleFunc("/zombie_dice/start_game", start_zombie_dice)
-	mux.HandleFunc("/zombie_dice/join_game", join_game)
+	mux.HandleFunc("/zombie_dice_multi_player/start_game", start_zombie_dice)
+
+	mux.HandleFunc("/zombie_dice_multi_player/join_game", join_game)
 	mux.HandleFunc("/zombie_dice/take_turn", take_zombie_dice_turn)
-	mux.HandleFunc("/zombie_dice/get_player_turn_results", get_player_turn_results)
-	mux.HandleFunc("/zombie_dice/get_n_players_in_game", get_n_players_in_game)
+	mux.HandleFunc("/zombie_dice_multi_player/take_turn", take_zombie_dice_turn)
+	mux.HandleFunc("/zombie_dice_multi_player/get_player_turn_results", get_player_turn_results)
+	mux.HandleFunc("/zombie_dice_multi_player/get_n_players_in_game", get_n_players_in_game)
 
 	mux.HandleFunc("/four_dice_roll", four_dice_roll)
 	mux.HandleFunc("/roll_dice", roll_dice)
