@@ -63,15 +63,21 @@ Join Game: <input type="text" id="t1" /> <input type="button" id="join_game" onc
      <p> The dice deck contains six green dice, four yellow dice, and three red dice.</p>
      <p> Dice Types: Green: three brain, two walk, one shot. Yellow: two brain, two walk, two shot, Red: one brain, two walk, three shot.</p>
    -->
-Game Status:
-<div id="game_status">
-    0
-</div>
+
+<br>
+<br>
+
+<!-- Game Status:
+     <div id="game_status">
+     0
+     </div>
+   -->
+<textarea id="game_status"></textarea>
 
 
 <script type="text/javascript">
 
-var this_player_id = Math.floor(Math.random() * 1000000).toString();
+var this_player_id = Math.floor(Math.random() * 100000000).toString();
 
 function startGame() {
     $.post("http://localhost:8000/zombie_dice/start_game?num_players=1&player1=" + this_player_id + "&player1_ai=false", "", function(data, status) {
@@ -164,7 +170,7 @@ function parseTurnData(data) {
           url: "http://localhost:8000/zombie_dice/get_player_turn_results?" + "game_id=" + window.game_state_id,
           type: 'get',
           success: function(data) {
-	     document.getElementById("game_status").innerHTML = data;
+	     document.getElementById("game_status").value = data;
           }, 
        });
     };

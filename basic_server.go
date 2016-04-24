@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"encoding/json"
+	"time"
 
 	"github.com/Akavall/GoGamesProject/dice"
 	"github.com/Akavall/GoGamesProject/statistics"
@@ -264,6 +265,9 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	fmt.Fprintf(response, string(json_string))
 
 	if game_state.GameOver {
+		// to display the game status
+		// winner_string := fmt.Sprintf("\nWinner: %s", game_state.Winner)
+		time.Sleep(time.Second * 30)
 		delete(zombie_games, uuid)
 	}
 
@@ -306,15 +310,24 @@ func get_player_turn_results(response http.ResponseWriter, request *http.Request
 
 		if tr.IsDead == true || tr.ContinueTurn == false {
 
-			turn_end_string := fmt.Sprintf("Player: %s, Total Score: %d, Turn Ended", tr.PlayerName, tr.TotalScore)
+			turn_end_string := fmt.Sprintf("Player: %s, Total Score: %d, Turn Ended\n", tr.PlayerName, tr.TotalScore)
 			roll_strings = append(roll_strings, turn_end_string)
 		}
-		one_roll_string := strings.Join(roll_strings, "<br>")	
+		
+		if tr.Winner != "" {
+			winner_string := fmt.Sprintf("Winner: Player: %s", tr.Winner)
+
+			roll_strings = append(roll_strings, winner_string) 
+		}
+
+		one_roll_string := strings.Join(roll_strings, "\n")	
+
+
 		all_rolls = append(all_rolls, one_roll_string)
 	}
 
 	
-	formated_moves := strings.Join(all_rolls, "<br>")
+	formated_moves := strings.Join(all_rolls, "\n")
 
 	fmt.Fprintf(response, formated_moves)
 	
