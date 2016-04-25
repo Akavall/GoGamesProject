@@ -156,7 +156,10 @@ func join_game(response http.ResponseWriter, request *http.Request) {
 	zombie_game, ok := zombie_games[game_id]
 
 	if !ok {
-		log.Fatalf("Cannot find a game with id: %s\n", game_id)
+		// kills the entire run
+		// log.Fatalf("Cannot find a game with id: %s\n", game_id)
+
+		log.Printf("Cannot find a game with id: %s\n", game_id)
 	}
 
 	player2_input := request.Form["player2"]
