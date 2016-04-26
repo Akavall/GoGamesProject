@@ -61,11 +61,6 @@ Join Game: <input type="text" id="t1" /> <input type="button" id="join_game" onc
 
 <textarea id="game_status"></textarea>
 
-<br>
-^ ^ ^ ^ ^ ^ ^ ^ ^
-<br>
-Latest move status. Scroll to the bottom.
-
 <script type="text/javascript">
 
 var this_player_id = Math.floor(Math.random() * 100000000).toString();
@@ -140,7 +135,9 @@ function parseTurnData(data) {
           url: "http://localhost:8000/zombie_dice_multi_player/get_player_turn_results?" + "game_id=" + window.game_state_id,
           type: 'get',
           success: function(data) {
-	     document.getElementById("game_status").value = data;
+	     var my_text_area = document.getElementById("game_status");
+	     my_text_area.value = data;
+	     my_text_area.scrollTop = my_text_area.scrollHeight;
           }, 
        });
     };
