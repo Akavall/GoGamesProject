@@ -1,128 +1,117 @@
 <html lang="en">
-<head>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"> </script>
-<title>Zombie Dice</title>
-</head>
-<body onload="document.getElementById('start_game').disabled = false">
-<h1>Play Zombie Dice!</h1>
+    <head>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"> </script>
+	<title>Zombie Dice</title>
+    </head>
+    <body onload="document.getElementById('start_game').disabled = false">
+	<h1>Play Zombie Dice!</h1>
 
 
-<div id="dice_roll">
-0
-</div>
+	<div id="dice_roll">
+	    0
+	</div>
 
-<div id="PlayerName">
-0
-</div>
+	<div id="PlayerName">
+	    0
+	</div>
 
-<div id="TimesShot">
-0
-</div>
+	<div id="TimesShot">
+	    0
+	</div>
 
-<div id="RoundScore">
-0
-</div>
+	<div id="RoundScore">
+	    0
+	</div>
 
-<div id="TotalScore">
-0
-</div>
+	<div id="TotalScore">
+	    0
+	</div>
 
-<div id="Winner">
-0
-</div>
+	<div id="Winner">
+	    0
+	</div>
 
-<div id="Directions">
-0
-</div>
-
-
-<div id="preset">
-<input type="button" id="start_game" onclick="startGame()" value="Start Game" />
-
-<input type="button" id="take_turn" onclick="takeTurn()" value="Take Turn" />
-
-<input type="button" id="stop_turn" onclick="stopTurn()" value="Stop Turn" />
-
-<input type="button" id="ai_turn" onclick="aiTurn()" value="AI Turn" />
-</div>
-
-<p> Zombie Dice: The goal is to get to 13 brains before your opponent. </p>
-<p> Each turn the player starts with a set of 13 dice. A turn proceeds in three steps: a player rolls three dice, each dice has 3 possible out comes: brain, walk and shot. These dice are selected at random without replacement from the set. If a player stops the turn with less then three shots, number of gained brains (Round Score) is added to total score. If number of shots during the turn equals or exceeds three, the turn automatically ends with no brains added to total score.
-<p> The dice deck contains six green dice, four yellow dice, and three red dice.</p>
-<p> Dice Types: Green: three brain, two walk, one shot. Yellow: two brain, two walk, two shot, Red: one brain, two walk, three shot.</p>
+	<div id="Directions">
+	    0
+	</div>
 
 
-<script type="text/javascript">
-function startGame() {
-    $.post("http://localhost:8000/zombie_dice/start_game?num_players=2&player1=You&player1_ai=false&player2=AI Player&player2_ai=true", "", function(data, status) {
-                window.game_state_id = data;
-                document.getElementById("start_game").disabled = true;
-            });
-}
+	<div id="preset">
+	    <input type="button" id="start_game" onclick="startGame()" value="Start Game" />
 
-function takeTurn() {
-     $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=true", "", function(data, status) {
-                parseTurnData(data)
-            });
-}
+	    <input type="button" id="take_turn" onclick="takeTurn()" value="Take Turn" />
 
-function stopTurn() {
-    $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=false", "", function(data, status) {
-                parseTurnData(data)
-            });
-}
+	    <input type="button" id="stop_turn" onclick="stopTurn()" value="Stop Turn" />
 
-function aiTurn() {
-     $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=AI Player&continue=true", "", function(data, status) {
-                parseTurnData(data)
-            });
-}
+	    <input type="button" id="ai_turn" onclick="aiTurn()" value="AI Turn" />
+	</div>
 
-function parseTurnData(data) {
-    player_turn_result = JSON.parse(data)
-
-    turn_result = player_turn_result["TurnResult"]
-
-    if (turn_result[0][0].length == 0) {
-        turn_result_string = "End of Turn";
-    } else {
-
-        var roll_1 = turn_result[0][1].fontcolor(turn_result[0][0]);
-        var roll_2 = turn_result[1][1].fontcolor(turn_result[1][0]);
-        var roll_3 = turn_result[2][1].fontcolor(turn_result[2][0]);
-        turn_result_string = [roll_1, roll_2, roll_3].join("\t");
-    }
-
-    document.getElementById("dice_roll").innerHTML = turn_result_string;
-    document.getElementById("PlayerName").innerHTML = "Player : " + player_turn_result["PlayerName"];
-    document.getElementById("TimesShot").innerHTML = "Times Shot : " + player_turn_result["TimesShot"];
-    document.getElementById("RoundScore").innerHTML = "Round Score : " + player_turn_result["RoundScore"];
-    document.getElementById("TotalScore").innerHTML = "Total Score : " + player_turn_result["TotalScore"];
-    document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];
+	<p> Zombie Dice: The goal is to get to 13 brains before your opponent. </p>
+	<p> Each turn the player starts with a set of 13 dice. A turn proceeds in three steps: a player rolls three dice, each dice has 3 possible out comes: brain, walk and shot. These dice are selected at random without replacement from the set. If a player stops the turn with less then three shots, number of gained brains (Round Score) is added to total score. If number of shots during the turn equals or exceeds three, the turn automatically ends with no brains added to total score.
+	    <p> The dice deck contains six green dice, four yellow dice, and three red dice.</p>
+	    <p> Dice Types: Green: three brain, two walk, one shot. Yellow: two brain, two walk, two shot, Red: one brain, two walk, three shot.</p>
 
 
-    if (player_turn_result["PlayerName"] == "You") {
-        if (player_turn_result["IsDead"] == false && player_turn_result["ContinueTurn"] == true) {
-            directions = "Your turn! Hit Take Turn to make another roll or Stop Turn to end your turn."
-        } else {
-            directions = "Your turn has ended, hit AI Turn for AI to make a move."
-               }
-    } else {
-        if (player_turn_result["IsDead"] == false && player_turn_result["ContinueTurn"] == true) {
-            directions = "AI turn! hit AI Turn for AI to make a move."
-        } else {
-            directions = "AI turn has ended.  Hit Take Turn to make another roll or Stop Turn to end your turn."
-               }
-           }
+	    <script type="text/javascript">
+	     function startGame() {
+		$.post("http://localhost:8000/zombie_dice/start_game?num_players=2&player1=You&player1_ai=false&player2=AI Player&player2_ai=true", "", function(data, status) {
+                   window.game_state_id = data;
+                   document.getElementById("start_game").disabled = true;
+		});
+	     }
+	     function takeTurn() {
+		$.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=true", "", function(data, status) {
+                   parseTurnData(data)
+		});
+	     }
+	     function stopTurn() {
+		$.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=false", "", function(data, status) {
+                   parseTurnData(data)
+		});
+	     }
+	     function aiTurn() {
+		$.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=AI Player&continue=true", "", function(data, status) {
+                   parseTurnData(data)
+		});
+	     }
+	     function parseTurnData(data) {
+		player_turn_result = JSON.parse(data)
+		turn_result = player_turn_result["TurnResult"]
+		if (turn_result[0][0].length == 0) {
+		   turn_result_string = "End of Turn";
+		} else {
+		   var roll_1 = turn_result[0][1].fontcolor(turn_result[0][0]);
+		   var roll_2 = turn_result[1][1].fontcolor(turn_result[1][0]);
+		   var roll_3 = turn_result[2][1].fontcolor(turn_result[2][0]);
+		   turn_result_string = [roll_1, roll_2, roll_3].join("\t");
+		}
+		document.getElementById("dice_roll").innerHTML = turn_result_string;
+		document.getElementById("PlayerName").innerHTML = "Player : " + player_turn_result["PlayerName"];
+		document.getElementById("TimesShot").innerHTML = "Times Shot : " + player_turn_result["TimesShot"];
+		document.getElementById("RoundScore").innerHTML = "Round Score : " + player_turn_result["RoundScore"];
+		document.getElementById("TotalScore").innerHTML = "Total Score : " + player_turn_result["TotalScore"];
+		document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];
+		if (player_turn_result["PlayerName"] == "You") {
+		   if (player_turn_result["IsDead"] == false && player_turn_result["ContinueTurn"] == true) {
+		      directions = "Your turn! Hit Take Turn to make another roll or Stop Turn to end your turn."
+		   } else {
+		      directions = "Your turn has ended, hit AI Turn for AI to make a move."
+		   }
+		} else {
+		   if (player_turn_result["IsDead"] == false && player_turn_result["ContinueTurn"] == true) {
+		      directions = "AI turn! hit AI Turn for AI to make a move."
+		   } else {
+		      directions = "AI turn has ended.  Hit Take Turn to make another roll or Stop Turn to end your turn."
+		   }
+		}
+		if (player_turn_result["Winner"].length > 0) {
+		   directions = "Game Over. You can start a new one by refreshing the browser."
+		}
+		
+		document.getElementById("Directions").innerHTML = "Directions : " + directions;
+		
+	     }
+	    </script>
 
-    if (player_turn_result["Winner"].length > 0) {
-         directions = "Game Over. You can start a new one by refreshing the browser."
-    }
-    
-    document.getElementById("Directions").innerHTML = "Directions : " + directions;
-    
-}
-</script>
-
-</body>
+    </body>
 </html>

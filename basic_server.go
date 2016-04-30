@@ -7,7 +7,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"encoding/json"
+	"time"
 
 	"github.com/Akavall/GoGamesProject/dice"
 	"github.com/Akavall/GoGamesProject/statistics"
@@ -17,18 +19,7 @@ import (
 
 const MAX_ZOMBIE_DICE_GAMES = 60
 
-type PlayerTurnResult struct {
-	TurnResult [3][2]string
-	RoundScore int
-	TimesShot int
-	TotalScore int
-	IsDead bool
-	Winner string
-	PlayerName string
-	ContinueTurn bool
-}
-
-var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html"))
+var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html", "web/zombie_dice_multi_player.html"))
 var zombie_games = make(map[string]*zombie_dice.GameState)
 
 func zombie_game(response http.ResponseWriter, request *http.Request) {
@@ -40,6 +31,17 @@ func zombie_game(response http.ResponseWriter, request *http.Request) {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 	}
 }
+
+func zombie_game_multi_player(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("Content-type", "text/html")
+
+	err := templates.ExecuteTemplate(response, "zombie_dice_multi_player.html", nil)
+
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 
 func index(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/html")
@@ -62,6 +64,8 @@ func start_zombie_dice(response http.ResponseWriter, request *http.Request) {
 
 	num_players_input := request.Form["num_players"]
 
+	log.Println("num_players_input", num_players_input)
+
 	var num_players int
 	if len(num_players_input) == 1 {
 		num_players, err = strconv.Atoi(num_players_input[0])
@@ -76,6 +80,9 @@ func start_zombie_dice(response http.ResponseWriter, request *http.Request) {
 	}
 
 	players := make([]zombie_dice.Player, num_players)
+
+	log.Println("num_players", num_players)
+
 	for i := 1; i <= num_players; i++ {
 		player := "player" + strconv.Itoa(i)
 		player_name_input := request.Form[player]
@@ -132,6 +139,39 @@ func start_zombie_dice(response http.ResponseWriter, request *http.Request) {
 	fmt.Fprintf(response, "%s", uuid_string)
 }
 
+func join_game(response http.ResponseWriter, request *http.Request) {
+	log.Println("Joining the game...")
+	response.Header().Set("Content-type", "text/plain")
+
+	// Parse URL and POST data into the request.Form
+	err := request.ParseForm()
+	if err != nil {
+		log.Fatal(response, fmt.Sprintf("error parsing url %v", err), 500)
+	}
+
+	game_id_input := request.Form["game_id"]
+
+	game_id := game_id_input[0]
+
+	zombie_game, ok := zombie_games[game_id]
+
+	if !ok {
+		// kills the entire run
+		// log.Fatalf("Cannot find a game with id: %s\n", game_id)
+
+		log.Printf("Cannot find a game with id: %s\n", game_id)
+	}
+
+	player2_input := request.Form["player2"]
+	player2_name := player2_input[0]
+	score := 0
+	player2 := zombie_dice.Player{PlayerState: zombie_dice.InitPlayerState(), Name: player2_name, IsAI: false, TotalScore: &score}
+
+	(*zombie_game).Players = append((*zombie_game).Players, player2)
+
+	log.Printf("Player: %s joined game: %s", player2_name, game_id)
+}
+
 func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/plain")
 
@@ -166,8 +206,9 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	log.Printf("continue_turn_0 : %s", continue_turn)
+	log.Printf("continue_turn_0 : %t", continue_turn)
 
+	log.Printf("uuid : %s", uuid)
 	game_state, ok := zombie_games[uuid]
  
 	if !ok {
@@ -217,7 +258,9 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.EndTurn()
 	}
 
-        player_turn_result := PlayerTurnResult{TurnResult: turn_result, 
+        player_turn_result := zombie_dice.PlayerTurnResult{
+
+	TurnResult: turn_result, 
 	RoundScore: active_player.PlayerState.CurrentScore,
 	TimesShot: active_player.PlayerState.TimesShot,
 	TotalScore: *active_player.TotalScore,
@@ -230,10 +273,26 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	if err != nil {
 		panic(err) //TO-DO: handle this error better
 	}
+
+	(*game_state).MoveLog = append((*game_state).MoveLog, player_turn_result)
 	
 	fmt.Fprintf(response, string(json_string))
 
 	if game_state.GameOver {
+		// sleeping to display the game status
+		// for multi player, skiping for games with AI
+		// TODO: There has to be a better way to do thi
+		
+		skip_sleep := false
+		for _, player := range (*game_state).Players {
+			if player.IsAI {
+				skip_sleep = true
+			}
+		}
+		if !skip_sleep {
+			log.Println("Sleeping...")
+			time.Sleep(time.Second * 30)
+		}
 		delete(zombie_games, uuid)
 	}
 
@@ -245,7 +304,84 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	game_state.IsActive = false
 }
 
+func get_player_turn_results(response http.ResponseWriter, request *http.Request) {
+
+	err := request.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	game_id_form, _ := request.Form["game_id"]
+ 	
+	game_id := game_id_form[0]
+
+	current_game, ok := zombie_games[game_id]
+	if !ok {
+		// This will likely to happend, if a player
+		// is slow to start a game and/or another player
+		// is slow to join
+		log.Printf("Game id has not been found")
+		return
+	}
+
+	move_log := (*current_game).MoveLog
+
+	all_rolls := []string {}
+	for _, tr := range move_log {
+		roll_strings := []string {"Player: " + tr.PlayerName}
+		for i := 0; i < 3; i++ {
+			roll_strings = append(roll_strings, fmt.Sprintf("%s: %s", tr.TurnResult[i][0], tr.TurnResult[i][1]))
+		}
+
+		if tr.IsDead == true || tr.ContinueTurn == false {
+
+			turn_end_string := fmt.Sprintf("Player: %s, Total Score: %d, Turn Ended\n", tr.PlayerName, tr.TotalScore)
+			roll_strings = append(roll_strings, turn_end_string)
+		}
+		
+		if tr.Winner != "" {
+			winner_string := fmt.Sprintf("Winner: Player: %s", tr.Winner)
+
+			roll_strings = append(roll_strings, winner_string) 
+		}
+
+		one_roll_string := strings.Join(roll_strings, "\n")	
+
+
+		all_rolls = append(all_rolls, one_roll_string)
+	}
+
+	
+	formated_moves := strings.Join(all_rolls, "\n")
+
+	fmt.Fprintf(response, formated_moves)
+	
+}
+
+func get_n_players_in_game(response http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	game_id_form, _ := request.Form["game_id"]
+ 	
+	game_id := game_id_form[0]
+
+	current_game, ok := zombie_games[game_id]
+	if !ok {
+		// This will likely to happend, if a player
+		// is slow to start a game and/or another player
+		// is slow to join
+		log.Printf("Game id has not been found")
+		return
+	}
+
+	fmt.Fprintf(response, "%d", len(current_game.Players))
+}
+
 func parse_input(request *http.Request, field string) (s string, err error) {
+	
 	input_array := request.Form[field]
 	parsed_input := ""
 	if len(input_array) == 1 {
@@ -314,11 +450,21 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", index)
 	mux.HandleFunc("/zombie_dice", zombie_game)
+	mux.HandleFunc("/zombie_dice_multi_player", zombie_game_multi_player)
 	mux.HandleFunc("/zombie_dice/start_game", start_zombie_dice)
+	mux.HandleFunc("/zombie_dice_multi_player/start_game", start_zombie_dice)
+
+	mux.HandleFunc("/zombie_dice_multi_player/join_game", join_game)
 	mux.HandleFunc("/zombie_dice/take_turn", take_zombie_dice_turn)
+	mux.HandleFunc("/zombie_dice_multi_player/take_turn", take_zombie_dice_turn)
+	mux.HandleFunc("/zombie_dice_multi_player/get_player_turn_results", get_player_turn_results)
+	mux.HandleFunc("/zombie_dice_multi_player/get_n_players_in_game", get_n_players_in_game)
+
 	mux.HandleFunc("/four_dice_roll", four_dice_roll)
 	mux.HandleFunc("/roll_dice", roll_dice)
+
 	log.Printf("Started dumb Dice web server! Try it on http://ip_address:8000")
+
 	err := http.ListenAndServe("0.0.0.0:8000", mux)
 
 	if err != nil {

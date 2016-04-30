@@ -1,0 +1,171 @@
+<html lang="en">
+<head>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"> </script>
+<title>Zombie Dice</title>
+</head>
+<body onload="document.getElementById('start_game').disabled = false">
+<h1>Play Zombie Dice!</h1>
+
+
+<div id="dice_roll">
+0
+</div>
+
+<div id="PlayerName">
+0
+</div>
+
+<div id="TimesShot">
+0
+</div>
+
+<div id="RoundScore">
+0
+</div>
+
+<div id="TotalScore">
+0
+</div>
+
+<div id="Winner">
+0
+</div>
+
+<div id="GameId">
+0
+</div>
+
+<div id="players_in_game">
+0
+</div>
+
+
+<div id="preset">
+<input type="button" id="start_game" onclick="startGame()" value="Start Game" />
+
+<input type="button" id="take_turn" onclick="takeTurn()" value="Take Turn" />
+
+<input type="button" id="stop_turn" onclick="stopTurn()" value="Stop Turn" />
+
+<input type="button" id="ai_turn" onclick="aiTurn()" value="AI Turn" />
+</div> <br>
+
+
+
+Join Game: <input type="text" id="t1" /> <input type="button" id="join_game" onclick="joinGame()" value="Join Game" />
+
+(*Do not hit Start Game after joining a game.)
+
+<br>
+<br>
+
+<textarea id="game_status"></textarea>
+
+<script type="text/javascript">
+
+var this_player_id = Math.floor(Math.random() * 100000000).toString();
+
+function startGame() {
+    $.post("http://localhost:8000/zombie_dice_multi_player/start_game?num_players=1&player1=" + this_player_id + "&player1_ai=false", "", function(data, status) {
+                window.game_state_id = data;
+                document.getElementById("start_game").disabled = true;
+                document.getElementById("GameId").innerHTML = window.game_state_id;
+            });
+}
+
+function joinGame() {
+    var game_id = document.getElementById("t1").value;
+    window.game_state_id = game_id;
+
+    document.getElementById("GameId").innerHTML = window.game_state_id;
+
+    $.post("http://localhost:8000/zombie_dice_multi_player/join_game?player2=" + this_player_id + "&game_id=" + game_id, "", function(data, status) {
+                document.getElementById("join_game").disabled = true;
+            });
+}
+
+function takeTurn() {
+     $.post("http://localhost:8000/zombie_dice_multi_player/take_turn?uuid=" + window.game_state_id + "&player=" + this_player_id + "&continue=true", "", function(data, status) {
+                parseTurnData(data)
+            });
+}
+
+function stopTurn() {
+    $.post("http://localhost:8000/zombie_dice_multi_player/take_turn?uuid=" + window.game_state_id + "&player=" + this_player_id +"&continue=false", "", function(data, status) {
+                parseTurnData(data)
+            });
+}
+
+function aiTurn() {
+     $.post("http://localhost:8000/zombie_dice_multi_player/take_turn?uuid=" + window.game_state_id + "&player=AI Player&continue=true", "", function(data, status) {
+                parseTurnData(data)
+            });
+}
+
+function parseTurnData(data) {
+    player_turn_result = JSON.parse(data)
+
+    turn_result = player_turn_result["TurnResult"]
+
+    if (turn_result[0][0].length == 0) {
+        turn_result_string = "End of Turn";
+    } else {
+
+        var roll_1 = turn_result[0][1].fontcolor(turn_result[0][0]);
+        var roll_2 = turn_result[1][1].fontcolor(turn_result[1][0]);
+        var roll_3 = turn_result[2][1].fontcolor(turn_result[2][0]);
+        turn_result_string = [roll_1, roll_2, roll_3].join("\t");
+    }
+
+    document.getElementById("dice_roll").innerHTML = turn_result_string;
+    document.getElementById("PlayerName").innerHTML = "Player : " + player_turn_result["PlayerName"];
+    document.getElementById("TimesShot").innerHTML = "Times Shot : " + player_turn_result["TimesShot"];
+    document.getElementById("RoundScore").innerHTML = "Round Score : " + player_turn_result["RoundScore"];
+    document.getElementById("TotalScore").innerHTML = "Total Score : " + player_turn_result["TotalScore"];
+    document.getElementById("Winner").innerHTML = "Winner : " + player_turn_result["Winner"];
+
+}
+</script>
+
+<script type="text/javascript">
+
+ (function() {
+    var poll = function() {
+       $.ajax({
+          url: "http://localhost:8000/zombie_dice_multi_player/get_player_turn_results?" + "game_id=" + window.game_state_id,
+          type: 'get',
+          success: function(data) {
+	     var my_text_area = document.getElementById("game_status");
+	     my_text_area.value = data;
+	     my_text_area.scrollTop = my_text_area.scrollHeight;
+          }, 
+       });
+    };
+    setInterval(function() {
+       poll();
+    }, 200);
+ })();
+
+</script>
+
+<script type="text/javascript">
+
+ (function() {
+    var poll = function() {
+       $.ajax({
+          url: "http://localhost:8000/zombie_dice_multi_player/get_n_players_in_game?" + "game_id=" + window.game_state_id,
+          type: 'get',
+          success: function(data) {
+	     document.getElementById("players_in_game").innerHTML = "Players in Game: " + data;
+          }, 
+       });
+    };
+    setInterval(function() {
+       poll();
+    }, 200);
+ })();
+
+</script>
+
+</body>
+</html>
