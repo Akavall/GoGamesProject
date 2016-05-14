@@ -67,6 +67,8 @@ Join Game: <input type="text" id="t1" /> <input type="button" id="join_game" onc
     <div style="float:right;">
 	Chat:
 	<br>
+	Say: <input type="text" id="message_to_send" /> <input type="button" onclick="send_chat_message()" value="Enter"><br>
+	<br>
 	<textarea id="chat"></textarea>
     </div>
 </div>
@@ -176,6 +178,46 @@ function parseTurnData(data) {
     }, 200);
  })();
 
+</script>
+
+<script type="text/javascript">
+function send_chat_message() {
+    var message = document.getElementById("message_to_send").value;
+
+    console.log(message)
+
+    var hash_map = {};
+    hash_map["player"] = this_player_id;
+    hash_map["message"] = message;
+    var json_data = JSON.stringify(hash_map);
+    $.ajax({
+       type: 'POST',
+       url: "http://localhost:8000/zombie_dice_multi_player/send_chat_message?" + "chat_id=" + window.game_state_id + "&player=" + this_player_id,
+       data: json_data,
+       success: function(data) { console.log("success"); },
+       contentType: "application/json",
+       dataType: 'json',
+    });
+    
+ }
+</script>
+
+<script type="text/javascript">
+ (function() {
+    var poll = function() {
+       $.ajax({
+          url: "http://localhost:8000/zombie_dice_multi_player/receive_all_chat_messages?" + "chat_id=" + window.game_state_id,
+          type: 'get',
+          success: function(data) {
+             
+	     document.getElementById("chat").value = data;
+          }, 
+       });
+    };
+    setInterval(function() {
+       poll();
+    }, 200);
+ })();
 </script>
 
 </body>

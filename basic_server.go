@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -14,6 +16,7 @@ import (
 	"github.com/Akavall/GoGamesProject/dice"
 	"github.com/Akavall/GoGamesProject/statistics"
 	"github.com/Akavall/GoGamesProject/zombie_dice"
+	// "github.com/Akavall/GoGamesProject/zombie_chat"
 	"github.com/nu7hatch/gouuid"
 )
 
@@ -21,6 +24,7 @@ const MAX_ZOMBIE_DICE_GAMES = 60
 
 var templates = template.Must(template.ParseFiles("web/index.html", "web/zombie_dice.html", "web/zombie_dice_multi_player.html"))
 var zombie_games = make(map[string]*zombie_dice.GameState)
+var zombie_chats = make(map[string]*zombie_dice.ZombieChat)
 
 func zombie_game(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/html")
@@ -131,6 +135,18 @@ func start_zombie_dice(response http.ResponseWriter, request *http.Request) {
 		log.Printf("Successfully started new Zombie Dice game with ID: %s; Number of running games: %d", uuid_string, len(zombie_games))
 	} else {
 		error_message := fmt.Sprintf("Maximum number of zombie dice games (%d) reached!", MAX_ZOMBIE_DICE_GAMES)
+		log.Printf(error_message)
+		http.Error(response, error_message, http.StatusBadRequest)
+		return
+	}
+
+	zombie_chat := zombie_dice.ZombieChat {}
+
+	if len(zombie_chats) < MAX_ZOMBIE_DICE_GAMES {
+		zombie_chats[uuid_string] = &zombie_chat
+		log.Printf("Successfully started new Zombie Dice chat with ID: %s; Number of running chats: %d", uuid_string, len(zombie_chats))
+	} else {
+		error_message := fmt.Sprintf("Maximum number of zombie dice chats (%d) reached!", MAX_ZOMBIE_DICE_GAMES)
 		log.Printf(error_message)
 		http.Error(response, error_message, http.StatusBadRequest)
 		return
@@ -380,6 +396,91 @@ func get_n_players_in_game(response http.ResponseWriter, request *http.Request) 
 	fmt.Fprintf(response, "%d", len(current_game.Players))
 }
 
+func send_chat_message(response http.ResponseWriter, request *http.Request) {
+	log.Println("Sending Message")
+	response.Header().Set("Content-type", "text/plain")
+
+	err := request.ParseForm()
+	if err != nil {
+		log.Fatal(response, fmt.Sprintf("error parsing url %v", err), 500)
+	}
+
+	chat_id, err := parse_input(request, "chat_id")
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	player_name, err := parse_input(request, "player")
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log.Print("PLAYERS NAME CHAT: ", player_name)
+
+	log.Printf("chat id : %s", chat_id)
+	zombie_chat, ok := zombie_chats[chat_id]
+
+	if !ok {
+		log.Printf("Could not find chat with id: %s\n", chat_id)
+	}
+
+	body, err := ioutil.ReadAll(io.LimitReader(request.Body, 1048576))
+	if err != nil {
+		fmt.Println("Could not parse request body")
+	}
+
+	err = request.Body.Close()
+	if err != nil {
+		fmt.Println("Could not close request Body")
+	}
+
+	message_info := map[string]string{}
+
+	err = json.Unmarshal(body, &message_info)
+	if err != nil {
+		panic(err)
+	}
+
+	message := message_info["message"]
+
+	player_message := fmt.Sprintf("%s : %s", player_name, message)
+
+	(*zombie_chat).Messages = append(zombie_chat.Messages, player_message)
+
+	fmt.Fprintf(response, player_message)
+	
+}
+
+func receive_all_chat_messages(response http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	chat_id_form, _ := request.Form["chat_id"]
+	chat_id := chat_id_form[0]
+
+
+	
+	current_chat, ok := zombie_chats[chat_id]
+	if !ok {
+		log.Printf("Chat id has not been found")
+		return 
+	}
+
+	var messages_str string 
+
+	if len((*current_chat).Messages) >= 100 {
+		messages_str = strings.Join((*current_chat).Messages[len((*current_chat).Messages)-10:], "\n")
+	} else {
+		messages_str = strings.Join((*current_chat).Messages, "\n")
+	}
+
+	fmt.Fprintf(response, messages_str)
+}
+
 func parse_input(request *http.Request, field string) (s string, err error) {
 	
 	input_array := request.Form[field]
@@ -459,6 +560,9 @@ func main() {
 	mux.HandleFunc("/zombie_dice_multi_player/take_turn", take_zombie_dice_turn)
 	mux.HandleFunc("/zombie_dice_multi_player/get_player_turn_results", get_player_turn_results)
 	mux.HandleFunc("/zombie_dice_multi_player/get_n_players_in_game", get_n_players_in_game)
+
+	mux.HandleFunc("/zombie_dice_multi_player/send_chat_message", send_chat_message)
+	mux.HandleFunc("/zombie_dice_multi_player/receive_all_chat_messages", receive_all_chat_messages)
 
 	mux.HandleFunc("/four_dice_roll", four_dice_roll)
 	mux.HandleFunc("/roll_dice", roll_dice)
