@@ -51,15 +51,26 @@
 </div> <br>
 
 
-
+(*Do not hit Start Game after joining a game.)
+<br>
 Join Game: <input type="text" id="t1" /> <input type="button" id="join_game" onclick="joinGame()" value="Join Game" />
 
-(*Do not hit Start Game after joining a game.)
-
 <br>
 <br>
 
-<textarea id="game_status"></textarea>
+<div style="width: 100%;">
+    <div style="float:left; width: 70%">
+	Game Status:
+	<br>
+	<textarea id="game_status"></textarea>
+    </div>
+    <div style="float:right;">
+	Chat:
+	<br>
+	<textarea id="chat"></textarea>
+    </div>
+</div>
+<div style="clear:both"></div>
 
 <script type="text/javascript">
 
