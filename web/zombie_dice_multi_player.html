@@ -57,6 +57,10 @@ Join Game: <input type="text" id="t1" /> <input type="button" id="join_game" onc
 
 <br>
 <br>
+Set Your Name: <input type="text" id="t2" /> <input type="button" id="set_name" onclick="setName()" value="Set Your Name" />
+
+<br>
+<br>
 
 <div style="width: 100%;">
     <div style="float:left; width: 70%">
@@ -78,6 +82,7 @@ Join Game: <input type="text" id="t1" /> <input type="button" id="join_game" onc
 
 var this_player_id = Math.floor(Math.random() * 100000000).toString();
 
+
 function startGame() {
     $.post("http://localhost:8000/zombie_dice_multi_player/start_game?num_players=1&player1=" + this_player_id + "&player1_ai=false", "", function(data, status) {
                 window.game_state_id = data;
@@ -95,6 +100,25 @@ function joinGame() {
     $.post("http://localhost:8000/zombie_dice_multi_player/join_game?player2=" + this_player_id + "&game_id=" + game_id, "", function(data, status) {
                 document.getElementById("join_game").disabled = true;
             });
+}
+
+function setName() {
+    window.this_player_name = document.getElementById("t2").value;
+    console.log(window.this_player_name)
+    // Post request to updated PlayerID to name 
+
+    var hash_map = {};
+    hash_map["player_name"] = this_player_name;
+    hash_map["player_id"] = this_player_id;
+    var json_data = JSON.stringify(hash_map);
+    $.ajax({
+       type: 'POST',
+       url: "http://localhost:8000/zombie_dice_multi_player/set_player_name",
+       data: json_data,
+       success: function(data) { console.log("success"); },
+       contentType: "application/json",
+       dataType: 'json',
+    });
 }
 
 function takeTurn() {
@@ -209,8 +233,9 @@ function send_chat_message() {
           url: "http://localhost:8000/zombie_dice_multi_player/receive_all_chat_messages?" + "chat_id=" + window.game_state_id,
           type: 'get',
           success: function(data) {
-             
-	     document.getElementById("chat").value = data;
+             var my_text_area = document.getElementById("chat");
+	     my_text_area.value = data;
+	     my_text_area.scrollTop = my_text_area.scrollHeight;
           }, 
        });
     };
