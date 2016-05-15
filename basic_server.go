@@ -16,7 +16,6 @@ import (
 	"github.com/Akavall/GoGamesProject/dice"
 	"github.com/Akavall/GoGamesProject/statistics"
 	"github.com/Akavall/GoGamesProject/zombie_dice"
-	// "github.com/Akavall/GoGamesProject/zombie_chat"
 	"github.com/nu7hatch/gouuid"
 )
 
@@ -348,13 +347,19 @@ func get_player_turn_results(response http.ResponseWriter, request *http.Request
 	all_rolls := []string {}
 	for _, tr := range move_log {
 		roll_strings := []string {"Player: " + tr.PlayerId}
+
+		player_name, ok := id_to_name[tr.PlayerId]
+		if !ok {
+			log.Println("could not find player_name in id_to_name, player_name set to empty string")
+		}
+
 		for i := 0; i < 3; i++ {
-			roll_strings = append(roll_strings, fmt.Sprintf("%s: %s", tr.TurnResult[i][0], tr.TurnResult[i][1]))
+			roll_strings = append(roll_strings, fmt.Sprintf("%s:%s : %s", player_name, tr.TurnResult[i][0], tr.TurnResult[i][1]))
 		}
 
 		if tr.IsDead == true || tr.ContinueTurn == false {
 
-			turn_end_string := fmt.Sprintf("Player: %s, Total Score: %d, Turn Ended\n", tr.PlayerId, tr.TotalScore)
+			turn_end_string := fmt.Sprintf("%s:%s, Total Score: %d, Turn Ended\n", player_name, tr.PlayerId, tr.TotalScore)
 			roll_strings = append(roll_strings, turn_end_string)
 		}
 		
@@ -454,7 +459,7 @@ func send_chat_message(response http.ResponseWriter, request *http.Request) {
 
 	player_message := fmt.Sprintf("%s:%s : %s", player_name, player_id, message)
 
-	(*zombie_chat).Messages = append(zombie_chat.Messages, player_message)
+	zombie_chat.ThreadSafeAppend(player_message)
 
 	fmt.Fprintf(response, player_message)
 	
