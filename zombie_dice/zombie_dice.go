@@ -32,7 +32,7 @@ type Players []Player
 
 type Player struct {
 	*PlayerState
-	Name       string
+	Id         string
 	IsAI       bool
 	TotalScore *int
 }
@@ -53,7 +53,7 @@ type PlayerTurnResult struct {
 	TotalScore int
 	IsDead bool
 	Winner string
-	PlayerName string
+	PlayerId string
 	ContinueTurn bool
 }
 
@@ -78,7 +78,7 @@ func (gs *GameState) endRound() {
 	player_score_to_count := map[int]int {}
 	max_score := 0
 	for _, p := range gs.Players {
-		log.Printf("\033[0;32mPlayer: %s, Score: %d\033[0m", p.Name, *p.TotalScore)
+		log.Printf("\033[0;32mPlayer: %s, Score: %d\033[0m", p.Id, *p.TotalScore)
 		player_score_to_count[*p.TotalScore] += 1
 		if *p.TotalScore > max_score {
 			max_score = *p.TotalScore
@@ -117,7 +117,7 @@ func InitGameState(players Players) (gs GameState, err error) {
 func (p *Player) TakeTurn(deck *ZombieDeck) (s [3][2]string, err error) {
 	turn_result := [3][2]string{}
 	if p.PlayerState.IsDead == true {
-		return turn_result, errors.New(fmt.Sprintf("Player %s is dead and cannot take more turns!", p.Name))
+		return turn_result, errors.New(fmt.Sprintf("Player %s is dead and cannot take more turns!", p.Id))
 	}
 
 	if len(deck.Deck.Dices) < DICE_TO_DEAL {
@@ -139,7 +139,7 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s [3][2]string, err error) {
 		sides = append(sides, side)
 		turn_result[roll_ind][0] = d.Name
                 turn_result[roll_ind][1] = side.Name
-		log.Printf("%s rolled: %s, %s\n", p.Name, d.Name, side.Name)
+		log.Printf("%s rolled: %s, %s\n", p.Id, d.Name, side.Name)
 
 		if side.Name == "brain" {
 			p.PlayerState.CurrentScore++
@@ -177,7 +177,7 @@ func shouldKeepGoing(p Player, deck *ZombieDeck) bool {
 
 	var answer int
 
-	switch p.Name {
+	switch p.Id {
 	case "human":
 		answer = get_terminal_input()
 	case "greedy":
@@ -207,8 +207,8 @@ func PlayWithAI() {
 
 	t1 := 0
 	t2 := 0
-	players[0] = Player{PlayerState: InitPlayerState(), Name: "human", IsAI: false, TotalScore: &t1}
-	players[1] = Player{PlayerState: InitPlayerState(), Name: ai_name, IsAI: true, TotalScore: &t2}
+	players[0] = Player{PlayerState: InitPlayerState(), Id: "human", IsAI: false, TotalScore: &t1}
+	players[1] = Player{PlayerState: InitPlayerState(), Id: ai_name, IsAI: true, TotalScore: &t2}
 
 	gameState, err := InitGameState(players)
 
@@ -221,28 +221,28 @@ func PlayWithAI() {
 		//range returns a copy, so state is lost after each iteration
 		for i := 0; i < len(gameState.Players); i++ {
 			p := gameState.Players[i]
-			log.Printf("Player %s is taking turn; Players total score: %d", p.Name, *p.TotalScore)
+			log.Printf("Player %s is taking turn; Players total score: %d", p.Id, *p.TotalScore)
 			for {
 				_, err := p.TakeTurn(&gameState.ZombieDeck)
 
 				if err != nil {
-					log.Printf("Error occured while player %s was taking turn: %s", p.Name, err.Error())
+					log.Printf("Error occured while player %s was taking turn: %s", p.Id, err.Error())
 					break
 				}
 
 				log.Printf("Current score: %d; Times shot: %d", p.PlayerState.CurrentScore, p.PlayerState.TimesShot)
 
 				if p.PlayerState.IsDead {
-					log.Printf("Player %s has died! No points scored.", p.Name)
+					log.Printf("Player %s has died! No points scored.", p.Id)
 					p.PlayerState.Reset()
 					time.Sleep(3 * 1e9)
 					break
 				}
 
 				if !shouldKeepGoing(p, &gameState.ZombieDeck) {
-					log.Printf("Player %s chose to stop, added %d to total score", p.Name, p.PlayerState.CurrentScore)
+					log.Printf("Player %s chose to stop, added %d to total score", p.Id, p.PlayerState.CurrentScore)
 					*p.TotalScore += p.PlayerState.CurrentScore
-					log.Printf("Player %s total score is now: %d", p.Name, *p.TotalScore)
+					log.Printf("Player %s total score is now: %d", p.Id, *p.TotalScore)
 
 					//p.PlayerState = InitPlayerState()
 					p.PlayerState.Reset()
@@ -253,7 +253,7 @@ func PlayWithAI() {
 		}
 
 		if gameState.GameOver {
-			log.Printf("Player %s won!", gameState.Winner.Name)
+			log.Printf("Player %s won!", gameState.Winner.Id)
 			break
 		}
 	}
