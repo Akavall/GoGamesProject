@@ -46,10 +46,10 @@ http://localhost:8000/zombie_dice_multi_player
 
 Steps how to play multi-player:
 
-1) Host player hits `Start Game`, the generates game_id, for example:
+1) Host player hits `Start Game`, this generates game_id, for example:
 `c67c6624-9da2-486b-4726-d28a1dc3215f`
 2) Host sends game_id to guest.
 3) Guest pastes game_id in "Join Game" field and hits `Join Game`.
    Host will see that "Players in Game" has increased to 2, and the game
    can start.
-4) Host hits `Take Turn` and the game can starts.
+4) Host hits `Take Turn` and the game starts.
