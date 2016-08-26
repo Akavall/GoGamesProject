@@ -312,6 +312,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 			time.Sleep(time.Second * 30)
 		}
 		delete(zombie_games, uuid)
+		delete(zombie_chats, uuid)
 	}
 
 	if active_player.PlayerState.IsDead {
