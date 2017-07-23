@@ -19,6 +19,7 @@ const DICE_TO_DEAL = 3
 const SHOTS_UNTIL_DEAD = 3
 
 type GameState struct {
+	GameStateID string `dynamodbav:"game_state_id"`
 	Players
 	ZombieDeck
 	PlayerTurn int
@@ -38,25 +39,24 @@ type Player struct {
 }
 
 type PlayerState struct {
-	TurnsTaken   int
-	CurrentScore int
-	TimesShot    int
-	BrainsRolled int
-	WalksTakenLastRoll int 
-	IsDead       bool
+	TurnsTaken         int
+	CurrentScore       int
+	TimesShot          int
+	BrainsRolled       int
+	WalksTakenLastRoll int
+	IsDead             bool
 }
 
 type PlayerTurnResult struct {
-	TurnResult [3][2]string
-	RoundScore int
-	TimesShot int
-	TotalScore int
-	IsDead bool
-	Winner string
-	PlayerId string
+	TurnResult   [3][2]string
+	RoundScore   int
+	TimesShot    int
+	TotalScore   int
+	IsDead       bool
+	Winner       string
+	PlayerId     string
 	ContinueTurn bool
 }
-
 
 func (gs *GameState) EndTurn() {
 	next_player_turn := gs.PlayerTurn + 1
@@ -75,7 +75,7 @@ func (gs *GameState) EndTurn() {
 
 func (gs *GameState) endRound() {
 
-	player_score_to_count := map[int]int {}
+	player_score_to_count := map[int]int{}
 	max_score := 0
 	for _, p := range gs.Players {
 		log.Printf("\033[0;32mPlayer: %s, Score: %d\033[0m", p.Id, *p.TotalScore)
@@ -86,12 +86,12 @@ func (gs *GameState) endRound() {
 	}
 
 	log.Printf("\033[32mMax score: %d\033[0m", max_score)
-	
+
 	if max_score >= WINNING_SCORE && player_score_to_count[max_score] == 1 {
 		for _, p := range gs.Players {
 			if *p.TotalScore == max_score {
 				gs.Winner = p
-				gs.GameOver = true 
+				gs.GameOver = true
 			}
 		}
 	}
@@ -107,11 +107,11 @@ func (ps *PlayerState) Reset() {
 	ps.IsDead = false
 }
 
-func InitGameState(players Players) (gs GameState, err error) {
+func InitGameState(players Players, gameStateId string) (gs GameState, err error) {
 	deck := InitZombieDeck()
 	deck.Shuffle()
 
-	return GameState{Players: players, ZombieDeck: deck, PlayerTurn: 0, Winner: Player{}, GameOver: false, IsActive: false}, nil
+	return GameState{GameStateID: gameStateId, Players: players, ZombieDeck: deck, PlayerTurn: 0, Winner: Player{}, GameOver: false, IsActive: false}, nil
 }
 
 func (p *Player) TakeTurn(deck *ZombieDeck) (s [3][2]string, err error) {
@@ -138,7 +138,7 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s [3][2]string, err error) {
 		side := d.Roll()
 		sides = append(sides, side)
 		turn_result[roll_ind][0] = d.Name
-                turn_result[roll_ind][1] = side.Name
+		turn_result[roll_ind][1] = side.Name
 		log.Printf("%s rolled: %s, %s\n", p.Id, d.Name, side.Name)
 
 		if side.Name == "brain" {
@@ -210,7 +210,8 @@ func PlayWithAI() {
 	players[0] = Player{PlayerState: InitPlayerState(), Id: "human", IsAI: false, TotalScore: &t1}
 	players[1] = Player{PlayerState: InitPlayerState(), Id: ai_name, IsAI: true, TotalScore: &t2}
 
-	gameState, err := InitGameState(players)
+	// I don't think this function is used anymore, so put it a very hacky fix
+	gameState, err := InitGameState(players, "123")
 
 	if err != nil {
 		log.Printf("Error occured while initializing game state")
