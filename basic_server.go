@@ -136,7 +136,9 @@ func start_zombie_dice(response http.ResponseWriter, request *http.Request) {
 	err = dynamo_db_tools.PutGameStateInDynamoDB(game_state)
 
 	if err != nil {
-		log.Printf("Was not able to put GameState in DynamoDB", err)
+		log.Println("Was not able to put GameState in DynamoDB", err)
+	} else {
+		log.Printf("Put GateState associated with %s in DynamoDB table: GameStates", uuid_string)
 	}
 
 	if len(zombie_games) < MAX_ZOMBIE_DICE_GAMES {
@@ -234,10 +236,15 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	log.Printf("continue_turn_0 : %t", continue_turn)
 
 	log.Printf("uuid : %s", uuid)
-	game_state, ok := zombie_games[uuid]
+	// Step I
+	// We would need to take the game_state from DynamoDB
+	// game_state, ok := zombie_games[uuid]
+	fmt.Printf("uuid: %s\n", uuid)
+	game_state, err := dynamo_db_tools.GetGameStateFromDynamoDB(uuid)
+	fmt.Printf("game_state: %v\n", game_state)
 
-	if !ok {
-		http.Error(response, fmt.Sprintf("Game with id %s not found!", uuid), http.StatusBadRequest)
+	if err != nil {
+		http.Error(response, fmt.Sprintf("Game with id %s not found!, %v", uuid, err), http.StatusBadRequest)
 		return
 	} else {
 		log.Printf("Grabbed game state with id: %s", uuid)
@@ -299,17 +306,17 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		panic(err) //TO-DO: handle this error better
 	}
 
-	(*game_state).MoveLog = append((*game_state).MoveLog, player_turn_result)
+	game_state.MoveLog = append(game_state.MoveLog, player_turn_result)
 
 	fmt.Fprintf(response, string(json_string))
 
 	if game_state.GameOver {
 		// sleeping to display the game status
 		// for multi player, skiping for games with AI
-		// TODO: There has to be a better way to do thi
+		// TODO: There has to be a better way to do this
 
 		skip_sleep := false
-		for _, player := range (*game_state).Players {
+		for _, player := range game_state.Players {
 			if player.IsAI {
 				skip_sleep = true
 			}
@@ -318,7 +325,19 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 			log.Println("Sleeping...")
 			time.Sleep(time.Second * 30)
 		}
-		delete(zombie_games, uuid)
+
+		// Step III delete game_state here
+		// Need to delete game from dynamoDB table
+		// delete(zombie_games, uuid)
+
+		err := dynamo_db_tools.DeleteGameStateFromDynamoDB(uuid)
+
+		if err != nil {
+			log.Println("Was not able to delete GameState in DynamoDB, uuid: %s", err, uuid)
+		} else {
+			log.Printf("Deleted GameState associated with %s in DynamoDB table: GameStates", uuid)
+		}
+
 		delete(zombie_chats, uuid)
 	}
 
@@ -328,6 +347,16 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	}
 
 	game_state.IsActive = false
+
+	//Step II, we can save the game_state here, just another put
+	err = dynamo_db_tools.PutGameStateInDynamoDB(game_state)
+
+	if err != nil {
+		log.Println("Was not able to put GameState in DynamoDB", err)
+	} else {
+		log.Printf("Put/update GameState associated with %s in DynamoDB table: GameStates", uuid)
+	}
+
 }
 
 func get_player_turn_results(response http.ResponseWriter, request *http.Request) {

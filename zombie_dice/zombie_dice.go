@@ -201,6 +201,7 @@ func shouldKeepGoing(p Player, deck *ZombieDeck) bool {
 }
 
 func PlayWithAI() {
+	fmt.Println("PlayWithAI() is called")
 	ai_name := select_ai()
 
 	players := make([]Player, 2)
