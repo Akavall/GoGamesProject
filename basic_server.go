@@ -141,16 +141,16 @@ func start_zombie_dice(response http.ResponseWriter, request *http.Request) {
 		log.Printf("Put GateState associated with %s in DynamoDB table: GameStates", uuid_string)
 	}
 
-	if len(zombie_games) < MAX_ZOMBIE_DICE_GAMES {
-		zombie_games[uuid_string] = &game_state
-		log.Printf("Successfully started new Zombie Dice game with ID: %s; Number of running games: %d", uuid_string, len(zombie_games))
-	} else {
-		error_message := fmt.Sprintf("Maximum number of zombie dice games (%d) reached!", MAX_ZOMBIE_DICE_GAMES)
-		log.Printf(error_message)
-		http.Error(response, error_message, http.StatusBadRequest)
-		return
-	}
-
+	//	if len(zombie_games) < MAX_ZOMBIE_DICE_GAMES {
+	//		zombie_games[uuid_string] = &game_state
+	//		log.Printf("Successfully started new Zombie Dice game with ID: %s; Number of running games: %d", uuid_string, len(zombie_games))
+	//	} else {
+	//		error_message := fmt.Sprintf("Maximum number of zombie dice games (%d) reached!", MAX_ZOMBIE_DICE_GAMES)
+	//		log.Printf(error_message)
+	//		http.Error(response, error_message, http.StatusBadRequest)
+	//		return
+	//	}
+	//
 	zombie_chat := zombie_dice.ZombieChat{}
 
 	if len(zombie_chats) < MAX_ZOMBIE_DICE_GAMES {
@@ -236,12 +236,8 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	log.Printf("continue_turn_0 : %t", continue_turn)
 
 	log.Printf("uuid : %s", uuid)
-	// Step I
-	// We would need to take the game_state from DynamoDB
-	// game_state, ok := zombie_games[uuid]
-	fmt.Printf("uuid: %s\n", uuid)
+
 	game_state, err := dynamo_db_tools.GetGameStateFromDynamoDB(uuid)
-	fmt.Printf("game_state: %v\n", game_state)
 
 	if err != nil {
 		http.Error(response, fmt.Sprintf("Game with id %s not found!, %v", uuid, err), http.StatusBadRequest)
@@ -331,10 +327,6 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 			time.Sleep(time.Second * 30)
 		}
 
-		// Step III delete game_state here
-		// Need to delete game from dynamoDB table
-		// delete(zombie_games, uuid)
-
 		err := dynamo_db_tools.DeleteGameStateFromDynamoDB(uuid)
 
 		if err != nil {
@@ -375,16 +367,25 @@ func get_player_turn_results(response http.ResponseWriter, request *http.Request
 
 	game_id := game_id_form[0]
 
-	current_game, ok := zombie_games[game_id]
-	if !ok {
-		// This will likely to happend, if a player
-		// is slow to start a game and/or another player
-		// is slow to join
-		log.Printf("Game id has not been found")
+	//	current_game, ok := zombie_games[game_id]
+	//	if !ok {
+	//		// This will likely to happend, if a player
+	//		// is slow to start a game and/or another player
+	//		// is slow to join
+	//		log.Printf("Game id has not been found")
+	//		return
+	//	}
+	//
+	game_state, err := dynamo_db_tools.GetGameStateFromDynamoDB(game_id)
+
+	if err != nil {
+		http.Error(response, fmt.Sprintf("Game with id %s not found!, %v", game_id, err), http.StatusBadRequest)
 		return
+	} else {
+		log.Printf("Grabbed game state with id: %s", game_id)
 	}
 
-	move_log := (*current_game).MoveLog
+	move_log := (game_state).MoveLog
 
 	all_rolls := []string{}
 	for _, tr := range move_log {
@@ -432,16 +433,25 @@ func get_n_players_in_game(response http.ResponseWriter, request *http.Request) 
 
 	game_id := game_id_form[0]
 
-	current_game, ok := zombie_games[game_id]
-	if !ok {
-		// This will likely to happend, if a player
-		// is slow to start a game and/or another player
-		// is slow to join
-		log.Printf("Game id has not been found")
+	//	current_game, ok := zombie_games[game_id]
+	//	if !ok {
+	//		// This will likely to happend, if a player
+	//		// is slow to start a game and/or another player
+	//		// is slow to join
+	//		log.Printf("Game id has not been found")
+	//		return
+	//	}
+	//
+	game_state, err := dynamo_db_tools.GetGameStateFromDynamoDB(game_id)
+
+	if err != nil {
+		http.Error(response, fmt.Sprintf("Game with id %s not found!, %v", game_id, err), http.StatusBadRequest)
 		return
+	} else {
+		log.Printf("Grabbed game state with id: %s", game_id)
 	}
 
-	fmt.Fprintf(response, "%d", len(current_game.Players))
+	fmt.Fprintf(response, "%d", len(game_state.Players))
 }
 
 func send_chat_message(response http.ResponseWriter, request *http.Request) {
