@@ -48,7 +48,7 @@ type PlayerState struct {
 }
 
 type PlayerTurnResult struct {
-	TurnResult   [3][2]string
+	TurnResult   [][]string
 	RoundScore   int
 	TimesShot    int
 	TotalScore   int
@@ -114,8 +114,15 @@ func InitGameState(players Players, gameStateId string) (gs GameState, err error
 	return GameState{GameStateID: gameStateId, Players: players, ZombieDeck: deck, PlayerTurn: 0, Winner: Player{}, GameOver: false, IsActive: false}, nil
 }
 
-func (p *Player) TakeTurn(deck *ZombieDeck) (s [3][2]string, err error) {
-	turn_result := [3][2]string{}
+func (p *Player) TakeTurn(deck *ZombieDeck) (s [][]string, err error) {
+	// turn_result := [3][2]string{}
+
+	turn_result := make([][]string, 3)
+
+	for i := 0; i < 3; i++ {
+		turn_result[i] = make([]string, 2)
+	}
+
 	if p.PlayerState.IsDead == true {
 		return turn_result, errors.New(fmt.Sprintf("Player %s is dead and cannot take more turns!", p.Id))
 	}

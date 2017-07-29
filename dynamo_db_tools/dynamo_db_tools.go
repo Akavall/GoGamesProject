@@ -68,7 +68,11 @@ func GetGameStateFromDynamoDB(game_state_uuid string) (zombie_dice.GameState, er
 
 	var game_state zombie_dice.GameState
 
-	dynamodbattribute.UnmarshalMap(result.Item, &game_state)
+	err = dynamodbattribute.UnmarshalMap(result.Item, &game_state)
+
+	if err != nil {
+		fmt.Printf("ERROR: %v", err)
+	}
 
 	return game_state, err
 }

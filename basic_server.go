@@ -277,7 +277,12 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		}
 	}
 
-	turn_result := [3][2]string{}
+	turn_result := make([][]string, 3)
+
+	for i := 0; i < 3; i++ {
+		turn_result[i] = make([]string, 2)
+	}
+
 	if continue_turn {
 		turn_result, err = active_player.TakeTurn(&game_state.ZombieDeck)
 		if err != nil {
