@@ -58,13 +58,9 @@ func GetGameStateFromDynamoDB(game_state_uuid string) (zombie_dice.GameState, er
 
 	result, err := svc.GetItem(input)
 
-	fmt.Printf("ERROR: %v", err)
-
 	if err != nil {
 		panic(fmt.Sprintf("failed to get Record from DynamoDB table: GameStates, uuid: %s, %v", err, game_state_uuid))
 	}
-
-	fmt.Printf("result: %v\n", result)
 
 	var game_state zombie_dice.GameState
 
