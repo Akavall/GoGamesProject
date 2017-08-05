@@ -2,6 +2,8 @@ package zombie_dice
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/Akavall/GoGamesProject/dice"
 )
 
@@ -27,13 +29,20 @@ func RandomAI() int {
 func SimulationistAI(previous_shots, already_gained_brains, walks int, deck_left *ZombieDeck) int {
 
 	// We need to make a copy of deck_left, so not to
-	// mutate the original deck when we are training 
+	// mutate the original deck when we are training
 
 	dices_copy := make([]dice.Dice, len(deck_left.Deck.Dices))
 	copy(dices_copy, deck_left.Deck.Dices)
 
 	deck_copy := dice.Deck{Name: "deck_copy", Dices: dices_copy}
 	zombie_deck_c := ZombieDeck{Deck: deck_copy}
+
+	if len(deck_left.Deck.Dices) < 3 {
+		log.Printf("Simulationist AI received Deck of size: %d: prepending for simulation", len(deck_left.Deck.Dices))
+		new_deck := InitZombieDeck()
+		new_deck.Shuffle()
+		zombie_deck_c.Deck.PrependDeck(new_deck.Deck)
+	}
 
 	n_iterations := 10000
 	all_killed := 0
