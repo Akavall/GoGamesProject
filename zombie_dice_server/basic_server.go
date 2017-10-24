@@ -17,7 +17,10 @@ import (
 
 const MAX_ZOMBIE_DICE_GAMES = 60
 
-var templates = template.Must(template.ParseFiles("github.com/Akavall/GoGamesProject/web/zombie_dice.html"))
+// var templates = template.Must(template.ParseFiles("github.com/Akavall/GoGamesProject/web/zombie_dice.html"))
+
+var templates = template.Must(template.ParseFiles("zombie_dice.html"))
+
 var zombie_games = make(map[string]*zombie_dice.GameState)
 var zombie_chats = make(map[string]*zombie_dice.ZombieChat)
 
