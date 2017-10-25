@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -15,14 +16,9 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
-const MAX_ZOMBIE_DICE_GAMES = 60
-
-// var templates = template.Must(template.ParseFiles("github.com/Akavall/GoGamesProject/web/zombie_dice.html"))
-
 var templates = template.Must(template.ParseFiles("zombie_dice.html"))
 
 var zombie_games = make(map[string]*zombie_dice.GameState)
-var zombie_chats = make(map[string]*zombie_dice.ZombieChat)
 
 type id_to_name_type map[string]string
 
@@ -127,18 +123,6 @@ func start_zombie_dice(response http.ResponseWriter, request *http.Request) {
 		log.Println("Was not able to put GameState in DynamoDB", err)
 	} else {
 		log.Printf("Put GateState associated with %s in DynamoDB table: GameStates", uuid_string)
-	}
-
-	zombie_chat := zombie_dice.ZombieChat{}
-
-	if len(zombie_chats) < MAX_ZOMBIE_DICE_GAMES {
-		zombie_chats[uuid_string] = &zombie_chat
-		log.Printf("Successfully started new Zombie Dice chat with ID: %s; Number of running chats: %d", uuid_string, len(zombie_chats))
-	} else {
-		error_message := fmt.Sprintf("Maximum number of zombie dice chats (%d) reached!", MAX_ZOMBIE_DICE_GAMES)
-		log.Printf(error_message)
-		http.Error(response, error_message, http.StatusBadRequest)
-		return
 	}
 
 	fmt.Fprintf(response, "%s", uuid_string)
@@ -280,7 +264,6 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 			log.Printf("Deleted GameState associated with %s in DynamoDB table: GameStates", uuid)
 		}
 
-		delete(zombie_chats, uuid)
 	}
 
 	if active_player.PlayerState.IsDead {
@@ -315,6 +298,15 @@ func parse_input(request *http.Request, field string) (s string, err error) {
 }
 
 func main() {
+
+	f, err := os.OpenFile("/var/log/ZombieDice/logfile.txt", os.O_RDWR|os.O_APPEND, 0660)
+
+	if err != nil {
+		fmt.Println("Could not open logfile.txt")
+	}
+
+	log.SetOutput(f)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/zombie_dice", zombie_game)
 	mux.HandleFunc("/zombie_dice/start_game", start_zombie_dice)
@@ -323,7 +315,7 @@ func main() {
 
 	log.Printf("Started dumb Dice web server! Try it on http://ip_address:8000")
 
-	err := http.ListenAndServe("0.0.0.0:8000", mux)
+	err = http.ListenAndServe("0.0.0.0:8000", mux)
 
 	if err != nil {
 		log.Fatal(err)

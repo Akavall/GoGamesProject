@@ -54,23 +54,23 @@
 
 	    <script type="text/javascript">
 	     function startGame() {
-		$.post("http://34.208.248.120:8000/zombie_dice/start_game?num_players=2&player1=You&player1_ai=false&player2=AI Player&player2_ai=true", "", function(data, status) {
+		$.post("http://34.208.248.130:8000/zombie_dice/start_game?num_players=2&player1=You&player1_ai=false&player2=AI Player&player2_ai=true", "", function(data, status) {
                    window.game_state_id = data;
                    document.getElementById("start_game").disabled = true;
 		});
 	     }
 	     function takeTurn() {
-		$.post("http://34.208.248.120:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=true", "", function(data, status) {
+		$.post("http://34.208.248.130:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=true", "", function(data, status) {
                    parseTurnData(data)
 		});
 	     }
 	     function stopTurn() {
-		$.post("http://34.208.248.120:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=false", "", function(data, status) {
+		$.post("http://34.208.248.130:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=You&continue=false", "", function(data, status) {
                    parseTurnData(data)
 		});
 	     }
 	     function aiTurn() {
-		$.post("http://34.208.248.120:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=AI Player&continue=true", "", function(data, status) {
+		$.post("http://34.208.248.130:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=AI Player&continue=true", "", function(data, status) {
                    parseTurnData(data)
 		});
 	     }
