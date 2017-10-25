@@ -13,7 +13,7 @@ You probably will need `sudo`
 
 Change the file permissions to `666`
 
-2) Run the `deploy_scrips/setup.py` file.
+2) Run the `deploy_scrips/setup.sh` file.
 
 It takes 3 argumens: ip address, username@ip address, locatation on remote
 
