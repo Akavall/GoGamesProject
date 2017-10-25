@@ -20,9 +20,9 @@ It takes 3 argumens: ip address, username@ip address, locatation on remote
 For example:
 
 ```
-bash setup.py 12.23.34.45 ubuntu@12.23.34.45 "~/" 
+bash setup.sh 12.23.34.45 ubuntu@12.23.34.45 "~/" 
 ```
 
-This will deploy and run the server.
+This will deploy to remote machine and run the server on remote.
 
 
