@@ -1,58 +1,28 @@
-**Build a binary file example:**
 
-In the root directory GoGamesProject run
+Basic deployment:
 
-```
-go build basic_server.go
-```
+1) Set Up Logging
 
-**Run just one test file example:**
-
-In GoGamesProject/dice run
+On the remove server, create file:
 
 ```
-go test
+/var/log/ZombieDice/logfile.txt
 ```
 
-**Run all test files example:**
+You probably will need `sudo`
 
-In GoGamesProject run
+Change the file permissions to `666`
 
-```
-go test ./...
-```
+2) Run the `deploy_scrips/setup.sh` file.
 
-**Build local server**
+It takes 3 argumens: ip address, username@ip address, locatation on remote
 
-
-```
-go build
-./GoGamesProject
-```
-
-or
-
-Play against AI:
+For example:
 
 ```
-http://localhost:8000/zombie_dice
+bash setup.sh 12.23.34.45 ubuntu@12.23.34.45 "~/" 
 ```
 
-Play multi-player (running on local is mostly for testing in this case):
+This will deploy to remote machine and run the server on remote.
 
-```
-http://localhost:8000/zombie_dice_multi_player
-```
 
-Steps how to play multi-player:
-
-1) Host player hits `Start Game`, this generates game_id, for example:
-`c67c6624-9da2-486b-4726-d28a1dc3215f`
-
-2) Host sends game_id to guest.
-
-3) Guest pastes game_id in "Join Game" field and hits `Join Game`.
-   Host will see that "Players in Game" has increased to 2, and the game
-   can start.
-
-4) Host hits `Take Turn` and the game starts.
