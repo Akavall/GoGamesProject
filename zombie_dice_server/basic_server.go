@@ -263,7 +263,6 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		} else {
 			log.Printf("Deleted GameState associated with %s in DynamoDB table: GameStates", uuid)
 		}
-
 	}
 
 	if active_player.PlayerState.IsDead {
@@ -273,14 +272,16 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 
 	game_state.IsActive = false
 
-	err = dynamo_db_tools.PutGameStateInDynamoDB(game_state)
+	if !game_state.GameOver {
 
-	if err != nil {
-		log.Println("Was not able to put GameState in DynamoDB", err)
-	} else {
-		log.Printf("Put/update GameState associated with %s in DynamoDB table: GameStates", uuid)
+		err = dynamo_db_tools.PutGameStateInDynamoDB(game_state)
+
+		if err != nil {
+			log.Println("Was not able to put GameState in DynamoDB", err)
+		} else {
+			log.Printf("Put/update GameState associated with %s in DynamoDB table: GameStates", uuid)
+		}
 	}
-
 }
 
 func parse_input(request *http.Request, field string) (s string, err error) {
