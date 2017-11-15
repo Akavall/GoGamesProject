@@ -1,3 +1,5 @@
+echo "Running tests"
+go test ../...
 echo "setting up temporary deployment folder"
 mkdir -p ../zombie_dice_deployment
 echo "building executable"
@@ -14,3 +16,5 @@ ssh -n -f $2 "sh -c 'cd ~/zombie_dice_deployment; nohup ./basic_server > /dev/nu
 echo "lunched the server"
 rm -rf ../zombie_dice_deployment
 echo "deleted temporary deployment folder"
+
+
