@@ -35,6 +35,10 @@
 	    0
 	</div>
 
+    <div id="isAIRunning">
+    false
+    </div> 
+
 
 	<div id="preset">
 	    <input type="button" id="start_game" onclick="startGame()" value="Start Game" />
@@ -70,9 +74,12 @@
 		});
 	     }
 	     function aiTurn() {
-		$.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=AI Player&continue=true", "", function(data, status) {
-                   parseTurnData(data)
+
+                        
+		            $.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=AI Player&continue=true", "", function(data, status) {
+                    parseTurnData(data)
 		});
+
 	     }
 	     function parseTurnData(data) {
 		player_turn_result = JSON.parse(data)
