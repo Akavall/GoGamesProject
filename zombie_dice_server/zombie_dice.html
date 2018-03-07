@@ -35,11 +35,6 @@
 	    0
 	</div>
 
-    <div id="isAIRunning">
-    false
-    </div> 
-
-
 	<div id="preset">
 	    <input type="button" id="start_game" onclick="startGame()" value="Start Game" />
 
@@ -75,13 +70,8 @@
 	     }
 
 	     function aiTurn() {
-
-            var isAIRunning = document.getElementById("isAIRunning").innerHTML.trim();
-
-            if (isAIRunning == "false") {
                 
-                console.log("setting isAIRunning to true");
-                document.getElementById("isAIRunning").innerHTML = "true";
+                console.log("starting aiTurn Post request");
                         
 		        $.ajax({
                     type: "POST",
@@ -91,15 +81,9 @@
                     parseTurnData(data)
                     },
 		});
-                // I don't think this waits for post request to complete...
-                console.log("setting isAIRunning to false");
-                document.getElementById("isAIRunning").innerHTML = "false";
+                console.log("done with aiTurn Post request");
+	     }
 
-	     } else {
-               console.log("Ignoring call to aiTurn; it is already running");
-
-            }
-        }
 
 	     function parseTurnData(data) {
 		player_turn_result = JSON.parse(data)
