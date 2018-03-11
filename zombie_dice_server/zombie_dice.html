@@ -35,7 +35,6 @@
 	    0
 	</div>
 
-
 	<div id="preset">
 	    <input type="button" id="start_game" onclick="startGame()" value="Start Game" />
 
@@ -69,11 +68,23 @@
                    parseTurnData(data)
 		});
 	     }
+
 	     function aiTurn() {
-		$.post("http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=AI Player&continue=true", "", function(data, status) {
-                   parseTurnData(data)
+                
+                console.log("starting aiTurn Post request");
+                        
+		        $.ajax({
+                    type: "POST",
+                    url: "http://localhost:8000/zombie_dice/take_turn?uuid=" + window.game_state_id + "&player=AI Player&continue=true",
+                    async: false,
+                    success: function(data, status) {
+                    parseTurnData(data)
+                    },
 		});
+                console.log("done with aiTurn Post request");
 	     }
+
+
 	     function parseTurnData(data) {
 		player_turn_result = JSON.parse(data)
 		turn_result = player_turn_result["TurnResult"]
