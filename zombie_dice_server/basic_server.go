@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
+	//"os"
 	"strconv"
 	"time"
 
@@ -220,6 +220,13 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.EndTurn()
 	}
 
+	if active_player.PlayerState.IsDead {
+		active_player.PlayerState.Reset()
+		game_state.EndTurn()
+	}
+
+	log.Printf("Winner: %s", game_state.Winner.Id)
+
 	player_turn_result := zombie_dice.PlayerTurnResult{
 
 		TurnResult:   turn_result,
@@ -239,6 +246,8 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	game_state.MoveLog = append(game_state.MoveLog, player_turn_result)
 
 	fmt.Fprintf(response, string(json_string))
+
+	log.Printf("game_state.GameOver: %t", game_state.GameOver)
 
 	if game_state.GameOver {
 		// sleeping to display the game status
@@ -263,11 +272,6 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		} else {
 			log.Printf("Deleted GameState associated with %s in DynamoDB table: GameStates", uuid)
 		}
-	}
-
-	if active_player.PlayerState.IsDead {
-		active_player.PlayerState.Reset()
-		game_state.EndTurn()
 	}
 
 	game_state.IsActive = false

@@ -1,14 +1,9 @@
 package zombie_dice
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"log"
-	"os"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/Akavall/GoGamesProject/dice"
 )
@@ -123,6 +118,9 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s [][]string, err error) {
 		turn_result[i] = make([]string, 2)
 	}
 
+	log.Printf("p address: %p", &p)
+	log.Printf("In TakeTurn is dead: %t", p.PlayerState.IsDead)
+
 	if p.PlayerState.IsDead == true {
 		return turn_result, errors.New(fmt.Sprintf("Player %s is dead and cannot take more turns!", p.Id))
 	}
@@ -165,6 +163,8 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s [][]string, err error) {
 
 	if p.PlayerState.TimesShot >= SHOTS_UNTIL_DEAD {
 		p.PlayerState.IsDead = true
+		log.Printf("p address: %p", &p)
+		log.Printf("%s is dead", p.Id)
 	}
 
 	p.PlayerState.TurnsTaken++
@@ -173,129 +173,4 @@ func (p *Player) TakeTurn(deck *ZombieDeck) (s [][]string, err error) {
 
 func InitPlayerState() *PlayerState {
 	return &PlayerState{TurnsTaken: 0, CurrentScore: 0, TimesShot: 0, IsDead: false}
-}
-
-func shouldKeepGoing(p Player, deck *ZombieDeck) bool {
-	if !p.IsAI {
-		log.Println("Do you want to continue? Hit 1 to continue and 0 to stop")
-	} else {
-		time.Sleep(2 * 1e9)
-	}
-
-	var answer int
-
-	switch p.Id {
-	case "human":
-		answer = get_terminal_input()
-	case "greedy":
-		answer = GreedyAI(p.PlayerState.TimesShot)
-	case "careful":
-		answer = CarefulAI(p.PlayerState.TimesShot)
-	case "random":
-		answer = RandomAI()
-	case "simulationist":
-		answer = SimulationistAI(p.PlayerState.TimesShot, p.PlayerState.BrainsRolled, p.PlayerState.WalksTakenLastRoll, deck)
-	}
-
-	if answer == 0 {
-		if p.IsAI {
-			log.Println("turn ending...")
-			time.Sleep(2 * 1e9)
-		}
-		return false
-	}
-	return true
-}
-
-func PlayWithAI() {
-	fmt.Println("PlayWithAI() is called")
-	ai_name := select_ai()
-
-	players := make([]Player, 2)
-
-	t1 := 0
-	t2 := 0
-	players[0] = Player{PlayerState: InitPlayerState(), Id: "human", IsAI: false, TotalScore: &t1}
-	players[1] = Player{PlayerState: InitPlayerState(), Id: ai_name, IsAI: true, TotalScore: &t2}
-
-	// I don't think this function is used anymore, so put it a very hacky fix
-	gameState, err := InitGameState(players, "123")
-
-	if err != nil {
-		log.Printf("Error occured while initializing game state")
-	}
-
-	for {
-		//Using explicit for loop here because need to change state
-		//range returns a copy, so state is lost after each iteration
-		for i := 0; i < len(gameState.Players); i++ {
-			p := gameState.Players[i]
-			log.Printf("Player %s is taking turn; Players total score: %d", p.Id, *p.TotalScore)
-			for {
-				_, err := p.TakeTurn(&gameState.ZombieDeck)
-
-				if err != nil {
-					log.Printf("Error occured while player %s was taking turn: %s", p.Id, err.Error())
-					break
-				}
-
-				log.Printf("Current score: %d; Times shot: %d", p.PlayerState.CurrentScore, p.PlayerState.TimesShot)
-
-				if p.PlayerState.IsDead {
-					log.Printf("Player %s has died! No points scored.", p.Id)
-					p.PlayerState.Reset()
-					time.Sleep(3 * 1e9)
-					break
-				}
-
-				if !shouldKeepGoing(p, &gameState.ZombieDeck) {
-					log.Printf("Player %s chose to stop, added %d to total score", p.Id, p.PlayerState.CurrentScore)
-					*p.TotalScore += p.PlayerState.CurrentScore
-					log.Printf("Player %s total score is now: %d", p.Id, *p.TotalScore)
-
-					//p.PlayerState = InitPlayerState()
-					p.PlayerState.Reset()
-					break
-				}
-			}
-			gameState.EndTurn()
-		}
-
-		if gameState.GameOver {
-			log.Printf("Player %s won!", gameState.Winner.Id)
-			break
-		}
-	}
-}
-
-func get_terminal_input() int {
-	reader := bufio.NewReader(os.Stdin)
-	raw_string, _ := reader.ReadString('\n')
-	clean_string := strings.Replace(raw_string, "\n", "", -1)
-	answer, _ := strconv.Atoi(clean_string)
-	return answer
-}
-
-func select_ai() string {
-back:
-	fmt.Println("Please Select an AI you want to play against")
-	fmt.Printf("Greedy : press %d\n", 1)
-	fmt.Printf("Careful : press %d\n", 2)
-	fmt.Printf("Random : press %d\n", 3)
-	fmt.Printf("Simulationist : press %d\n", 4)
-
-	answer := get_terminal_input()
-	switch answer {
-	case 1:
-		return "greedy"
-	case 2:
-		return "careful"
-	case 3:
-		return "random"
-	case 4:
-		return "simulationist"
-	default:
-		fmt.Println("This is not a valid selection, please try again")
-		goto back
-	}
 }
