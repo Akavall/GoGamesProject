@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
+	//"os"
 	"strconv"
 	"time"
 
@@ -220,6 +220,13 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.EndTurn()
 	}
 
+	if active_player.PlayerState.IsDead {
+		active_player.PlayerState.Reset()
+		game_state.EndTurn()
+	}
+
+	log.Printf("Winner: %s", game_state.Winner.Id)
+
 	player_turn_result := zombie_dice.PlayerTurnResult{
 
 		TurnResult:   turn_result,
@@ -239,6 +246,8 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	game_state.MoveLog = append(game_state.MoveLog, player_turn_result)
 
 	fmt.Fprintf(response, string(json_string))
+
+	log.Printf("game_state.GameOver: %t", game_state.GameOver)
 
 	if game_state.GameOver {
 		// sleeping to display the game status
@@ -263,11 +272,6 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		} else {
 			log.Printf("Deleted GameState associated with %s in DynamoDB table: GameStates", uuid)
 		}
-	}
-
-	if active_player.PlayerState.IsDead {
-		active_player.PlayerState.Reset()
-		game_state.EndTurn()
 	}
 
 	game_state.IsActive = false
@@ -300,13 +304,13 @@ func parse_input(request *http.Request, field string) (s string, err error) {
 
 func main() {
 
-	f, err := os.OpenFile("/var/log/ZombieDice/logfile.txt", os.O_RDWR|os.O_APPEND, 0660)
+	/* f, err := os.OpenFile("/var/log/ZombieDice/logfile.txt", os.O_RDWR|os.O_APPEND, 0660)*/
 
-	if err != nil {
-		fmt.Println("Could not open logfile.txt")
-	}
+	//if err != nil {
+	//fmt.Println("Could not open logfile.txt")
+	//}
 
-	log.SetOutput(f)
+	//log.SetOutput(f)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/zombie_dice", zombie_game)
@@ -316,7 +320,8 @@ func main() {
 
 	log.Printf("Started dumb Dice web server! Try it on http://ip_address:8000")
 
-	err = http.ListenAndServe("0.0.0.0:8000", mux)
+	// change := to =
+	err := http.ListenAndServe("0.0.0.0:8000", mux)
 
 	if err != nil {
 		log.Fatal(err)
