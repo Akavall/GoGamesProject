@@ -304,13 +304,13 @@ func parse_input(request *http.Request, field string) (s string, err error) {
 
 func main() {
 
-	/* f, err := os.OpenFile("/var/log/ZombieDice/logfile.txt", os.O_RDWR|os.O_APPEND, 0660)*/
+	f, err := os.OpenFile("/var/log/ZombieDice/logfile.txt", os.O_RDWR|os.O_APPEND, 0660)
 
-	//if err != nil {
-	//fmt.Println("Could not open logfile.txt")
-	//}
+	if err != nil {
+		fmt.Println("Could not open logfile.txt")
+	}
 
-	//log.SetOutput(f)
+	log.SetOutput(f)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/zombie_dice", zombie_game)
@@ -320,8 +320,7 @@ func main() {
 
 	log.Printf("Started dumb Dice web server! Try it on http://ip_address:8000")
 
-	// change := to =
-	err := http.ListenAndServe("0.0.0.0:8000", mux)
+	err = http.ListenAndServe("0.0.0.0:8000", mux)
 
 	if err != nil {
 		log.Fatal(err)
