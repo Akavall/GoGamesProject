@@ -269,7 +269,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		err := dynamo_db_tools.DeleteGameStateFromDynamoDB(uuid)
 
 		if err != nil {
-			log.Println("Was not able to delete GameState in DynamoDB, uuid: %s", err, uuid)
+			log.Printf("Was not able to delete GameState in DynamoDB, uuid: %s, error: %s", err, uuid)
 		} else {
 			log.Printf("Deleted GameState associated with %s in DynamoDB table: GameStates", uuid)
 		}
