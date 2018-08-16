@@ -220,11 +220,6 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.EndTurn()
 	}
 
-	if active_player.PlayerState.IsDead {
-		active_player.PlayerState.Reset()
-		game_state.EndTurn()
-	}
-
 	log.Printf("Winner: %s", game_state.Winner.Id)
 
 	player_turn_result := zombie_dice.PlayerTurnResult{
@@ -241,6 +236,12 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	json_string, err := json.Marshal(player_turn_result)
 	if err != nil {
 		panic(err) //TO-DO: handle this error better
+	}
+
+	// Want to reset after player_turn_result has been recorded
+	if active_player.PlayerState.IsDead {
+		active_player.PlayerState.Reset()
+		game_state.EndTurn()
 	}
 
 	game_state.MoveLog = append(game_state.MoveLog, player_turn_result)
