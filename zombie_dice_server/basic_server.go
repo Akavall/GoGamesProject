@@ -223,13 +223,6 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.EndTurn()
 	}
 
-	// Ends Game too early, don't record movelog
-
-	//if continue_turn && active_player.PlayerState.IsDead {
-	////active_player.PlayerState.Reset()
-	//game_state.EndTurn()
-	//}
-
 	log.Printf("Winner: %s", game_state.Winner.Id)
 	log.Printf("player_turn_result: %v\n", turn_result)
 	log.Printf("TimeShot: %d\n", active_player.PlayerState.TimesShot)
@@ -257,7 +250,6 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	// Want to reset after player_turn_result has been recorded
 	if active_player.PlayerState.IsDead {
 		active_player.PlayerState.Reset()
-		//game_state.EndTurn()
 	}
 
 	game_state.MoveLog = append(game_state.MoveLog, player_turn_result)
