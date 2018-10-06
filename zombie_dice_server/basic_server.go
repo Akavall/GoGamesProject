@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
+	//"os"
 	"strconv"
 	"time"
 
@@ -182,6 +182,9 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.IsActive = true
 	}
 
+	log.Printf("player_index: %s\n", game_state.PlayerTurn)
+	log.Printf("Players: %v\n", game_state.Players)
+
 	player_index := game_state.PlayerTurn
 	active_player := game_state.Players[player_index]
 
@@ -220,7 +223,20 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.EndTurn()
 	}
 
+	// Ends Game too early, don't record movelog
+
+	//if continue_turn && active_player.PlayerState.IsDead {
+	////active_player.PlayerState.Reset()
+	//game_state.EndTurn()
+	//}
+
 	log.Printf("Winner: %s", game_state.Winner.Id)
+	log.Printf("player_turn_result: %v\n", turn_result)
+	log.Printf("TimeShot: %d\n", active_player.PlayerState.TimesShot)
+
+	if continue_turn && active_player.PlayerState.IsDead {
+		game_state.EndTurn()
+	}
 
 	player_turn_result := zombie_dice.PlayerTurnResult{
 
@@ -241,7 +257,7 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	// Want to reset after player_turn_result has been recorded
 	if active_player.PlayerState.IsDead {
 		active_player.PlayerState.Reset()
-		game_state.EndTurn()
+		//game_state.EndTurn()
 	}
 
 	game_state.MoveLog = append(game_state.MoveLog, player_turn_result)
@@ -305,13 +321,13 @@ func parse_input(request *http.Request, field string) (s string, err error) {
 
 func main() {
 
-	f, err := os.OpenFile("/var/log/ZombieDice/logfile.txt", os.O_RDWR|os.O_APPEND, 0660)
+	/* f, err := os.OpenFile("/var/log/ZombieDice/logfile.txt", os.O_RDWR|os.O_APPEND, 0660)*/
 
-	if err != nil {
-		fmt.Println("Could not open logfile.txt")
-	}
+	//if err != nil {
+	//fmt.Println("Could not open logfile.txt")
+	//}
 
-	log.SetOutput(f)
+	//log.SetOutput(f)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/zombie_dice", zombie_game)
@@ -321,7 +337,7 @@ func main() {
 
 	log.Printf("Started dumb Dice web server! Try it on http://ip_address:8000")
 
-	err = http.ListenAndServe("0.0.0.0:8000", mux)
+	err := http.ListenAndServe("0.0.0.0:8000", mux)
 
 	if err != nil {
 		log.Fatal(err)
