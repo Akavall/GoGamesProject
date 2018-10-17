@@ -182,6 +182,9 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 		game_state.IsActive = true
 	}
 
+	log.Printf("player_index: %s\n", game_state.PlayerTurn)
+	log.Printf("Players: %v\n", game_state.Players)
+
 	player_index := game_state.PlayerTurn
 	active_player := game_state.Players[player_index]
 
@@ -221,6 +224,12 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	}
 
 	log.Printf("Winner: %s", game_state.Winner.Id)
+	log.Printf("player_turn_result: %v\n", turn_result)
+	log.Printf("TimeShot: %d\n", active_player.PlayerState.TimesShot)
+
+	if continue_turn && active_player.PlayerState.IsDead {
+		game_state.EndTurn()
+	}
 
 	player_turn_result := zombie_dice.PlayerTurnResult{
 
@@ -241,7 +250,6 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	// Want to reset after player_turn_result has been recorded
 	if active_player.PlayerState.IsDead {
 		active_player.PlayerState.Reset()
-		game_state.EndTurn()
 	}
 
 	game_state.MoveLog = append(game_state.MoveLog, player_turn_result)
