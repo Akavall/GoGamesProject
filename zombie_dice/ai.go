@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	tensorflow "github.com/tensorflow/tensorflow/tensorflow/go"
+	tf "github.com/tensorflow/tensorflow/tensorflow/go"
+
 	"github.com/Akavall/GoGamesProject/dice"
 )
 
@@ -92,4 +95,66 @@ func simulate_one_roll(walk_dices *dice.Dices, zombie_deck_c *ZombieDeck, previo
 		}
 	}
 	return 0, n_inner_brains
+}
+func makeTensor(data [][]float32) (*tf.Tensor, error) {
+	return tf.NewTensor(data)
+}
+
+func getResult(prediction [][]float32) bool {
+	if prediction[0][0] > prediction[0][1] {
+		return false
+	}
+	return true
+}
+
+type RL_AI struct {
+	Model *tensorflow.SavedModel
+}
+
+func (rl *RL_AI) LoadModel() {
+
+	path := "/home/kirill/GoStuff/src/github.com/Akavall/GoGamesProject/zombie_dice/forGo4"
+	// full path solution is not very sustainable, maybe create my own/automatic full path?
+
+	// path := "./GoGamesProject/zombie_dice/forGo4"
+	model, err := tf.LoadSavedModel(path, []string{"tags"}, nil)
+
+	rl.Model = model
+
+	if err != nil {
+		fmt.Printf("Error loading saved model: %s\n", err.Error())
+		return
+	}
+
+}
+
+func (rl *RL_AI) Predict(data [][]float32) bool {
+
+	tensor, err := makeTensor(data)
+
+	fmt.Println("Made Tensor")
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result, runErr := rl.Model.Session.Run(
+		map[tf.Output]*tf.Tensor{
+			rl.Model.Graph.Operation("dense_1_input").Output(0): tensor,
+		},
+		[]tf.Output{
+			rl.Model.Graph.Operation("my_output/BiasAdd").Output(0),
+		},
+		nil,
+	)
+
+	if runErr != nil {
+		fmt.Println("ERROR!!! ", runErr)
+	}
+
+	fmt.Println("Result: ", result[0].Value())
+
+	temp := result[0].Value().([][]float32)
+
+	return getResult(temp)
 }

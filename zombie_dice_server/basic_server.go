@@ -13,7 +13,7 @@ import (
 
 	"github.com/Akavall/GoGamesProject/dynamo_db_tools"
 	"github.com/Akavall/GoGamesProject/zombie_dice"
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
 var templates = template.Must(template.ParseFiles("zombie_dice.html"))
@@ -128,7 +128,11 @@ func start_zombie_dice(response http.ResponseWriter, request *http.Request) {
 	fmt.Fprintf(response, "%s", uuid_string)
 }
 
-func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) {
+type AI struct {
+	rl_ai zombie_dice.RL_AI
+}
+
+func (ai *AI) take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/plain")
 
 	err := request.ParseForm()
@@ -197,12 +201,41 @@ func take_zombie_dice_turn(response http.ResponseWriter, request *http.Request) 
 	if active_player.IsAI {
 		log.Printf("Size of deck : %d\n", len(game_state.ZombieDeck.Deck.Dices))
 		log.Printf("\033[034mshot: %d,brains: %d, walks: %d\033[0m", active_player.PlayerState.TimesShot, active_player.PlayerState.BrainsRolled, active_player.PlayerState.WalksTakenLastRoll)
-		if zombie_dice.SimulationistAI(active_player.PlayerState.TimesShot,
-			active_player.PlayerState.BrainsRolled,
-			active_player.PlayerState.WalksTakenLastRoll,
-			&game_state.ZombieDeck) == 0 {
+
+		current_score := float32(active_player.PlayerState.CurrentScore)
+
+		shots := float32(active_player.PlayerState.TimesShot)
+		brains := float32(active_player.PlayerState.BrainsRolled)
+		walks := float32(active_player.PlayerState.WalksTakenLastRoll)
+
+		var greens float32
+		var yellows float32
+		var reds float32
+
+		for _, dice := range game_state.ZombieDeck.Deck.Dices {
+			if dice.Name == "green" {
+				greens += 1
+			} else if dice.Name == "yellow" {
+				yellows += 1
+			} else if dice.Name == "reds" {
+				reds += 1
+			} else {
+				log.Printf("Got side not familiar with")
+			}
+		}
+
+		model_input := [][]float32{{current_score, shots, brains, walks, greens, yellows, reds}}
+
+		if ai.rl_ai.Predict(model_input) == false {
 			continue_turn = false
 		}
+
+		// if zombie_dice.SimulationistAI(active_player.PlayerState.TimesShot,
+		// 	active_player.PlayerState.BrainsRolled,
+		// 	active_player.PlayerState.WalksTakenLastRoll,
+		// 	&game_state.ZombieDeck) == 0 {
+		// 	continue_turn = false
+		// }
 	}
 
 	turn_result := make([][]string, 3)
@@ -321,11 +354,17 @@ func main() {
 
 	log.SetOutput(f)
 
+	rl_ai := zombie_dice.RL_AI{}
+	rl_ai.LoadModel()
+
+	ai := AI{}
+	ai.rl_ai = rl_ai
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/zombie_dice", zombie_game)
 	mux.HandleFunc("/zombie_dice/start_game", start_zombie_dice)
 
-	mux.HandleFunc("/zombie_dice/take_turn", take_zombie_dice_turn)
+	mux.HandleFunc("/zombie_dice/take_turn", ai.take_zombie_dice_turn)
 
 	log.Printf("Started dumb Dice web server! Try it on http://ip_address:8000")
 
