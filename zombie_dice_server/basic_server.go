@@ -356,6 +356,7 @@ func main() {
 
 	rl_ai := zombie_dice.RL_AI{}
 	rl_ai.LoadModel()
+	fmt.Println("Loaded RL model")
 
 	ai := AI{}
 	ai.rl_ai = rl_ai

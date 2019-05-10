@@ -113,10 +113,7 @@ type RL_AI struct {
 
 func (rl *RL_AI) LoadModel() {
 
-	path := "/home/kirill/GoStuff/src/github.com/Akavall/GoGamesProject/zombie_dice/forGo4"
-	// full path solution is not very sustainable, maybe create my own/automatic full path?
-
-	// path := "./GoGamesProject/zombie_dice/forGo4"
+	path := "forGo4"
 	model, err := tf.LoadSavedModel(path, []string{"tags"}, nil)
 
 	rl.Model = model
@@ -132,7 +129,7 @@ func (rl *RL_AI) Predict(data [][]float32) bool {
 
 	tensor, err := makeTensor(data)
 
-	fmt.Println("Made Tensor")
+	log.Println("Made Tensor")
 
 	if err != nil {
 		fmt.Println(err)
@@ -152,7 +149,7 @@ func (rl *RL_AI) Predict(data [][]float32) bool {
 		fmt.Println("ERROR!!! ", runErr)
 	}
 
-	fmt.Println("Result: ", result[0].Value())
+	log.Println("RL prediction: ", result[0].Value())
 
 	temp := result[0].Value().([][]float32)
 
