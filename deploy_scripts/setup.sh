@@ -6,8 +6,10 @@ echo "building executable"
 go build ../zombie_dice_server/basic_server.go
 echo "moving executable"
 mv basic_server ../zombie_dice_deployment/
-echo "modifying html"
+echo "movein and modifying html"
 sed "s/localhost/"$1"/g" ../zombie_dice_server/zombie_dice.html > ../zombie_dice_deployment/zombie_dice.html
+echo "moving tensorflow model"
+cp -r ../zombie_dice_server/forGo4 ../zombie_dice_deployment
 echo "deploying to" $2":"$3
 scp -r ../zombie_dice_deployment $2":"$3
 echo "done deploying to" $2":"$3
